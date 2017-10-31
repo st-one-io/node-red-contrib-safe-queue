@@ -1,0 +1,32 @@
+{
+    "safe-queue": {
+        "queue-in": {
+            "label": {
+                
+            }
+        },
+        "queue-out":{
+            "label": {
+                
+            }
+        },
+        "queue-control":{
+            "label": {
+                
+            }
+        },
+        "queue-config":{
+            "label": {
+                
+            }
+        },
+        "queue-ack":{
+            "label": {
+                
+            }
+        }
+    },
+    "label": {
+        "name": "Name"
+    }
+}

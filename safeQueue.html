@@ -1,0 +1,185 @@
+<!--
+ Copyright 2016-2017 Smart-Tech Controle e Automação
+
+ Licensed under the Apache License, Version 2.0 (the "License");
+ you may not use this file except in compliance with the License.
+ You may obtain a copy of the License at
+
+		 http://www.apache.org/licenses/LICENSE-2.0
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+-->
+
+<!-- ------------- SafeQueue In (queue in) ---------------------- -->
+
+<script type="text/x-red" data-template-name="queue in">
+    <div class="form-row">
+        <label for="node-input-name">
+            <i class="fa fa-tag"></i>
+            <span data-i18n="safe-quere.label.name"></span>
+        </label>
+        <input type="text" id="node-input-name" data-i18n="[placeholder]safe-quere.label.name">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="queue in">
+    <p>SafeQueue In</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('queue in', {
+        category: 'SafeQueue',
+        color: '#a6bbcf',
+        defaults: {
+            name: {
+                value: ""
+            }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "file.png",
+        label: function () {
+            return this.name;
+        }
+    });
+</script>
+
+<!-- ------------- SafeQueue Out (queue out) -------------------- -->
+
+<script type="text/x-red" data-template-name="queue out">
+    <div class="form-row">
+        <label for="node-input-name">
+            <i class="fa fa-tag"></i>
+            <span data-i18n="safe-quere.label.name"></span>
+        </label>
+        <input type="text" id="node-input-name" data-i18n="[placeholder]safe-quere.label.name">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="queue out">
+    <p>SafeQueue Out</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('queue out', {
+        category: 'SafeQueue',
+        color: '#a6bbcf',
+        defaults: {
+            name: {
+                value: ""
+            }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "file.png",
+        label: function () {
+            return this.name;
+        }
+    });
+</script>
+
+<!-- ------------- SafeQueue Control (queue control) ------------ -->
+
+<script type="text/x-red" data-template-name="queue control">
+    <div class="form-row">
+        <label for="node-input-name">
+            <i class="fa fa-tag"></i>
+            <span data-i18n="safe-quere.label.name"></span>
+        </label>
+        <input type="text" id="node-input-name" data-i18n="[placeholder]safe-quere.label.name">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="queue control">
+    <p>SafeQueue Control</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('queue control', {
+        category: 'SafeQueue',
+        color: '#a6bbcf',
+        defaults: {
+            name: {
+                value: ""
+            }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "file.png",
+        label: function () {
+            return this.name;
+        }
+    });
+</script>
+
+<!-- ------------- SafeQueue Config (queue config) -------------- -->
+
+<script type="text/x-red" data-template-name="queue config">
+    <div class="form-row">
+        <label for="node-config-input-name">
+            <i class="fa fa-tag"></i>
+            <span data-i18n="safe-quere.label.name"></span>
+        </label>
+        <input type="text" id="node-config-input-name" data-i18n="[placeholder]safe-quere.label.name">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="queue config">
+    <p>SafeQueue Config</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('queue config', {
+        category: 'config',
+        color: '#a6bbcf',
+        defaults: {
+            name: {
+                value: ""
+            }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "file.png",
+        label: function () {
+            return this.name;
+        }
+    });
+</script>
+
+<!-- ------------- SafeQueue Acknowledge (queue ack) ------------ -->
+
+<script type="text/x-red" data-template-name="queue ack">
+    <div class="form-row">
+        <label for="node-config-input-name">
+            <i class="fa fa-tag"></i>
+            <span data-i18n="safe-quere.label.name"></span>
+        </label>
+        <input type="text" id="node-config-input-name" data-i18n="[placeholder]safe-quere.label.name">
+    </div>
+</script>
+
+<script type="text/x-red" data-help-name="queue ack">
+    <p>SafeQueue Acknowledge</p>
+</script>
+
+<script type="text/javascript">
+    RED.nodes.registerType('queue ack', {
+        category: 'SafeQueue',
+        color: '#a6bbcf',
+        defaults: {
+            name: {
+                value: ""
+            }
+        },
+        inputs: 1,
+        outputs: 1,
+        icon: "file.png",
+        label: function () {
+            return this.name;
+        }
+    });
+</script>
