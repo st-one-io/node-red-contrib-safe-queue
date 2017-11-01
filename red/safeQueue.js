@@ -32,33 +32,27 @@ module.exports = function (RED) {
 
         RED.nodes.createNode(this, config);
 
-       
-        
-        node.saveMessage = function saveMessage(obj, callback){
-            //Save Message
-            this.storage.addQueue(obj, callback);            
+        node.saveMessage = function saveMessage(obj, callback) {
+            this.storage.saveMessage(obj, callback);
         }
 
-        node.getMessage = function getMessage(idMessage){
-            //getMessage
-            var baseUri = "/home/smarttech/Desktop/SafeQueue/";
-            var uri = baseUri + "queue/" + idMessage + ".txt";
-            //-> Buscar MSG
-            
-
-            //-> Return MSG
+        node.getMessage = function getMessage(obj, callback) {
+            this.storage.getMessage(obj, callback);
         }
 
-        function readFile(uri) {
-            fs.readFile(uri , 'utf8', (err, data) => {
-                if (err){
-                    
-                } throw err;
-                console.log(data);
-            });
+        node.getListFiles = function getListFiles(callback) {
+            this.storage.getListFiles(callback);
         }
 
-        function defineStorage(){
+        node.getQueueSize = function getQueueSize(){
+            return this.storage.getQueueSize();    
+        }
+
+        node.deleteMessage = function deleteMessage(obj){
+            this.storage.deleteMessage(obj);
+        }
+
+        function defineStorage() {
             this.storage = new FileSystem("/home/smarttech/Desktop/SafeQueue/");
         }
     }
@@ -69,39 +63,73 @@ module.exports = function (RED) {
 
         var node = this;
 
-        node.status({fill: "gree", shape: "dot", text: "done"});
+        RED.nodes.createNode(this, values);
+
+        node.config = RED.nodes.getNode(values.config);
+
+        node.on('input', function (msg) {
+
+            node.status({
+                fill: "blue",
+                shape: "dot",
+                text: "new data"
+            });
+
+            node.config.saveMessage(msg, function (err) {
+                if (!err) {
+                    node.log("save ok");
+                    node.send(msg);
+                    node.status({
+                        fill: "green",
+                        shape: "dot",
+                        text: "done"
+                    });
+                } else {
+                    node.error(err);
+                    msg.error = err;
+                    node.send(msg);
+                    node.status({
+                        fill: "red",
+                        shape: "dot",
+                        text: "error"
+                    });
+                }
+            });
+        });
+    }
+    RED.nodes.registerType("queue in", SafeQueueIn);
+
+    // ------------- SafeQueue Out (queue out) ------------
+    function SafeQueueOut(values) {
+        var node = this;
 
         RED.nodes.createNode(this, values);
 
         node.config = RED.nodes.getNode(values.config);
 
-        node.on('input', function(msg){
-            
-            node.status({fill:"blue",shape:"dot",text:"new data"});
+        node.on('input', function (msg) {
 
-            node.config.saveMessage(msg, function(err){
+            node.config.getListFiles(function (err, files){
                 if(!err){
-                    console.log("Add Success");
-                    node.send(msg);
-                    node.status({fill: "gree", shape: "dot", text: "done"});
-                }else{
-                    node.error(err);
-                    msg.error = err;
-                    node.send(msg);
-                    node.status({fill: "red", shape: "dot", text: "error"});
+                    for(var i = 0; i < files.length; i++){
+                        
+                        node.config.getMessage(files[i], function(err, data){
+                            console.log(JSON.stringify(data));
+                        });
+
+                        node.config.deleteMessage(files[i]);
+                    }
                 }
-            });            
+            });
+
+            var teste = node.config.getQueueSize();
+            console.log("---> getQueueSize: " + teste);
+
+
+
+            node.send(msg);
         });
 
-
-    }
-    RED.nodes.registerType("queue in", SafeQueueIn);
-
-    // ------------- SafeQueue Out (queue out) ------------
-    function SafeQueueOut(config) {
-        var node = this;
-
-        RED.nodes.createNode(this, config);
     }
     RED.nodes.registerType("queue out", SafeQueueOut);
 
