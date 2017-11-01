@@ -1,32 +1,60 @@
 {
     "safe-queue": {
-        "queue-in": {
+        "in": {
             "label": {
                 
+            },
+            "define":{
+                "name": "queue in"
             }
         },
-        "queue-out":{
+        "out":{
             "label": {
                 
+            },
+            "define":{
+                "name": "queue out"
             }
         },
-        "queue-control":{
+        "control":{
             "label": {
                 
+            },
+            "define":{
+                "name": "queue control"
             }
         },
-        "queue-config":{
+        "config":{
             "label": {
+                "storage": "Storage type",
+                "timeout-ack": "Timeout ACK"
                 
+            },
+            "define":{
+                "name": "queue config"
             }
         },
-        "queue-ack":{
+        "ack":{
             "label": {
                 
+            },
+            "define":{
+                "name": "queue ack"
             }
+        },
+        "label": {
+            "name": "Name",
+            "config": "Config",
+            "path": "Path",
+            "url-data-base": "URL",
+            "port-data-base": "Port",
+            "user-data-base": "User",
+            "password-data-base": "Password"
+        },
+        "storage" : {
+            "file-system" : "File System",
+            "data-base": "Data Base"
         }
-    },
-    "label": {
-        "name": "Name"
     }
+    
 }
