@@ -17,7 +17,7 @@
   },
   "node-red": {
     "nodes": {
-        "safeQueue": "red/safeQueue.js"
+      "safeQueue": "red/safeQueue.js"
     }
   }
 }

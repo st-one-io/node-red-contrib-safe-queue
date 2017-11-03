@@ -6,9 +6,20 @@ class FileSystem {
     constructor(path) {
         this.path = path;
 
-        var uriQueue = this.path + "queue/";
-        var uriDone = this.path + "done/";
-        var uriError = this.path + "error/";
+        var urlBase = this.path;
+        var uriQueue = this.path + "/queue";
+        var uriDone = this.path + "/done";
+        var uriError = this.path + "/error";
+
+        if (!fs.existsSync(urlBase)) {
+            fs.mkdir(urlBase, function (err) {
+                if (!err) {
+                    console.log("create repository: " + urlBase);
+                } else {
+                    console.log("failure repository: " + urlBase + "\n Error: " + err);
+                }
+            });
+        }
 
         if (!fs.existsSync(uriQueue)) {
             fs.mkdir(uriQueue, function (err) {
@@ -45,21 +56,21 @@ class FileSystem {
 
 
     saveMessage(obj, callback) {
-        const uri = this.path + "queue/" + obj._msgid + ".json";
+        const uri = this.path + "/queue/" + obj._msgid + ".json";
         fs.writeFile(uri, JSON.stringify(obj.payload), callback);
     }
 
     getMessage(obj, callback) {
-        const uri = this.path + "queue/" + obj;
+        const uri = this.path + "/queue/" + obj;
         fs.readFile(uri, 'utf8', callback);
     }
 
     getListFiles(callback) {
-        fs.readdir(this.path + "queue/", 'utf8', callback);
+        fs.readdir(this.path + "/queue/", 'utf8', callback);
     }
 
     getQueueSize() {
-        var cont = fs.readdirSync(this.path + "queue/", 'utf8').length;
+        var cont = fs.readdirSync(this.path + "/queue/", 'utf8').length;
         return cont;
     }
 
@@ -71,8 +82,8 @@ class FileSystem {
         var year = date.getFullYear();
         var month = (date.getMonth() + 1);
 
-        const uri = this.path + "queue/" + obj;
-        const baseNewUri = this.path + "done/" + year + "-" + month + "-" + day + "/";
+        const uri = this.path + "/queue/" + obj;
+        const baseNewUri = this.path + "/done/" + year + "-" + month + "-" + day + "/";
         const newUri = baseNewUri + obj;
 
         if (!fs.existsSync(baseNewUri)) {
@@ -91,7 +102,7 @@ class FileSystem {
 
     getNext() {
 
-        fs.readdir(this.path + "queue/", 'utf8', function (err, files) {
+        fs.readdir(this.path + "/queue/", 'utf8', function (err, files) {
 
             if (!err) {
 
@@ -113,8 +124,8 @@ class FileSystem {
         var year = date.getFullYear();
         var month = (date.getMonth() + 1);
 
-        const uri = this.path + "queue/" + obj;
-        const baseNewUri = this.path + "error/" + year + "-" + month + "-" + day + "/";
+        const uri = this.path + "/queue/" + obj;
+        const baseNewUri = this.path + "/error/" + year + "-" + month + "-" + day + "/";
         const newUri = baseNewUri + obj;
 
         if (!fs.existsSync(baseNewUri)) {
@@ -133,7 +144,7 @@ class FileSystem {
 
     deleteDone() {
 
-        var url = this.path + "done/";
+        var url = this.path + "/done/";
 
         var dirs = fs.readdirSync(url, 'utf8');
 
@@ -153,7 +164,7 @@ class FileSystem {
 
     deleteError() {
 
-        var url = this.path + "error/";
+        var url = this.path + "/error/";
 
         var dirs = fs.readdirSync(url, 'utf8');
 
@@ -173,7 +184,7 @@ class FileSystem {
 
     deleteQueue() {
 
-        var url = this.path + "queue/";
+        var url = this.path + "/queue/";
 
         var files = fs.readdirSync(url, 'utf8');
 

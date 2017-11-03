@@ -23,7 +23,8 @@ module.exports = function (RED) {
     // ------------- SafeQueue Config (queue config) ------------
     function SafeQueueConfig(config) {
         var node = this;
-        this.storage = new FileSystem("/home/smarttech/Desktop/SafeQueue/");
+        //this.storage = new FileSystem("/home/smarttech/Desktop/SafeQueue");
+        this.storage = new FileSystem("c:/SafeQueue");
         var addInProgress = false;
         var addProgressOk = false;
         var addFail = 0;
