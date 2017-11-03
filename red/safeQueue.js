@@ -44,13 +44,22 @@ module.exports = function (RED) {
             this.storage.getListFiles(callback);
         }
 
-        node.getQueueSize = function getQueueSize(){
-            return this.storage.getQueueSize();    
+        node.getQueueSize = function getQueueSize() {
+            return this.storage.getQueueSize();
         }
 
-        node.deleteMessage = function deleteMessage(obj){
-            this.storage.deleteMessage(obj);
+        node.doneMessage = function doneMessage(obj) {
+            this.storage.doneMessage(obj);
         }
+
+        node.deleteDone = function deleteDone(){
+            this.storage.deleteDone();
+        }
+
+        node.deleteError = function deleteError(){
+            this.storage.deleteerror();
+        }
+
 
         function defineStorage() {
             this.storage = new FileSystem("/home/smarttech/Desktop/SafeQueue/");
@@ -77,7 +86,6 @@ module.exports = function (RED) {
 
             node.config.saveMessage(msg, function (err) {
                 if (!err) {
-                    node.log("save ok");
                     node.send(msg);
                     node.status({
                         fill: "green",
@@ -101,6 +109,7 @@ module.exports = function (RED) {
 
     // ------------- SafeQueue Out (queue out) ------------
     function SafeQueueOut(values) {
+
         var node = this;
 
         RED.nodes.createNode(this, values);
@@ -109,43 +118,60 @@ module.exports = function (RED) {
 
         node.on('input', function (msg) {
 
-            node.config.getListFiles(function (err, files){
-                if(!err){
-                    for(var i = 0; i < files.length; i++){
-                        
-                        node.config.getMessage(files[i], function(err, data){
-                            console.log(JSON.stringify(data));
-                        });
+            node.config.getListFiles(function (err, files) {
+                
+                if (!err) {
+                    for (var i = 0; i < files.length; i++) {
 
-                        node.config.deleteMessage(files[i]);
+                        msg.payload = files[i];
+
+                        node.send(msg);
+
                     }
                 }
+
             });
 
-            var teste = node.config.getQueueSize();
-            console.log("---> getQueueSize: " + teste);
-
-
-
-            node.send(msg);
         });
 
     }
     RED.nodes.registerType("queue out", SafeQueueOut);
 
     // ------------- SafeQueue Control (queue control) ------------
-    function SafeQueueControl(config) {
+    function SafeQueueControl(values) {
+
         var node = this;
 
-        RED.nodes.createNode(this, config);
+        RED.nodes.createNode(this, values);
+
+        node.config = RED.nodes.getNode(values.config);
+
+        node.on('input', function(msg){
+            node.config.deleteDone();
+        });
     }
     RED.nodes.registerType("queue control", SafeQueueControl);
 
     // ------------- SafeQueue Acknowledge (queue ack) ------------
-    function SafeQueueAcknowledge(config) {
+    function SafeQueueAcknowledge(values) {
+
         var node = this;
 
-        RED.nodes.createNode(this, config);
+        RED.nodes.createNode(this, values);
+
+        node.config = RED.nodes.getNode(values.config);
+
+        node.on('input', function (msg) {
+
+            node.config.doneMessage(msg.payload, function (err) {
+                if (!err) {
+                    node.send("done ok");
+                } else {
+                    node.send("done fail");
+                }
+            });
+
+        });
     }
     RED.nodes.registerType("queue ack", SafeQueueAcknowledge);
 
