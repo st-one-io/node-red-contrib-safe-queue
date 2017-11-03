@@ -189,7 +189,7 @@ class FileSystem {
         var files = fs.readdirSync(url, 'utf8');
 
         for (var x = 0; x < files.length; x++) {
-            fs.unlinkSync(newUrl + files[x]);
+            fs.unlinkSync(url + files[x]);
         }
     }
 

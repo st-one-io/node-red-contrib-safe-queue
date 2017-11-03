@@ -53,12 +53,16 @@ module.exports = function (RED) {
             this.storage.doneMessage(obj);
         }
 
-        node.deleteDone = function deleteDone(){
+        node.deleteDone = function deleteDone() {
             this.storage.deleteDone();
         }
 
-        node.deleteError = function deleteError(){
+        node.deleteError = function deleteError() {
             this.storage.deleteerror();
+        }
+
+        node.deleteQueue = function deleteQueue() {
+            this.storage.deleteQueue();
         }
 
 
@@ -120,7 +124,7 @@ module.exports = function (RED) {
         node.on('input', function (msg) {
 
             node.config.getListFiles(function (err, files) {
-                
+
                 if (!err) {
                     for (var i = 0; i < files.length; i++) {
 
@@ -147,8 +151,40 @@ module.exports = function (RED) {
 
         node.config = RED.nodes.getNode(values.config);
 
-        node.on('input', function(msg){
-            node.config.deleteDone();
+        node.on('input', function (msg) {
+
+            console.log(values.operation);
+
+            var operation = values.operation;
+
+            if (operation === 'queue-size') {
+
+                var size = node.config.getQueueSize();
+                msg.payload = size
+
+                node.status({
+                    fill: "green",
+                    shape: "dot",
+                    text: size
+                });
+
+
+            }
+
+            if (operation === 'delete-queue') {
+                msg.payload = node.config.deleteQueue();
+            }
+
+            if (operation === 'delete-error') {
+                msg.payload = node.config.deleteError();
+            }
+
+            if (operation === 'delete-done') {
+                msg.payload = node.config.deleteDone();
+            }
+
+
+            node.send(msg);
         });
     }
     RED.nodes.registerType("queue control", SafeQueueControl);
@@ -166,9 +202,9 @@ module.exports = function (RED) {
 
             node.config.doneMessage(msg.payload, function (err) {
                 if (!err) {
-                    node.send("done ok");
+
                 } else {
-                    node.send("done fail");
+                    node.error(err);
                 }
             });
 

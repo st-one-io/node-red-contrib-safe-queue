@@ -18,6 +18,7 @@
         },
         "control":{
             "label": {
+                "operation" : "Operation"
                 
             },
             "define":{
@@ -54,6 +55,12 @@
         "storage" : {
             "file-system" : "File System",
             "data-base": "Data Base"
+        },
+        "operation-options" : {
+            "queue-size" : "Queue size",
+            "delete-queue" : "Delete queue",
+            "delete-error" : "Delete error",
+            "delete-done" : "Delete done"
         }
     }
     

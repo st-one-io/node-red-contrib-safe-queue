@@ -27,7 +27,7 @@
 
     <div class="form-row">
         <label for="node-input-config">
-            <i class="fa fa-bolt"></i>
+            <i class="fa fa-cog"></i>
             <span data-i18n="safe-queue.label.config"></span>
         </label>
         <input type="text" id="node-input-config" data-i18n="[placeholder]safe-queue.label.config">
@@ -88,7 +88,7 @@
 
     <div class="form-row">
         <label for="node-input-config">
-            <i class="fa fa-bolt"></i>
+            <i class="fa fa-cog"></i>
             <span data-i18n="safe-queue.label.config"></span>
         </label>
         <input type="text" id="node-input-config" data-i18n="[placeholder]safe-queue.label.config">
@@ -150,10 +150,23 @@
 
     <div class="form-row">
         <label for="node-input-config">
-            <i class="fa fa-bolt"></i>
+            <i class="fa fa-cog"></i>
             <span data-i18n="safe-queue.label.config"></span>
         </label>
         <input type="text" id="node-input-config" data-i18n="[placeholder]safe-queue.label.config">
+    </div>
+
+    <div class="form-row">
+        <label for="node-input-operation">
+            <i class="fa fa-filter"></i>
+            <span data-i18n="safe-queue.control.label.operation"></span>
+        </label>
+        <select type="text" id="node-input-operation">
+            <option value="queue-size"   data-i18n="safe-queue.operation-options.queue-size">  </option>
+            <option value="delete-done"  data-i18n="safe-queue.operation-options.delete-done"> </option>
+            <option value="delete-error" data-i18n="safe-queue.operation-options.delete-error"></option>
+            <option value="delete-queue" data-i18n="safe-queue.operation-options.delete-queue"></option>
+        </select>
     </div>
 
 </script>
@@ -173,6 +186,9 @@
             config: {
                 value: "",
                 type: "queue config"
+            },
+            operation: {
+                value: ""
             }
         },
         inputs: 1,
@@ -212,7 +228,7 @@
 
     <div class="form-row" id="node-ack-config">
         <label for="node-input-config">
-            <i class="fa fa-bolt"></i>
+            <i class="fa fa-cog"></i>
             <span data-i18n="safe-queue.label.config"></span>
         </label>
         <input type="text" id="node-input-config" data-i18n="[placeholder]safe-queue.label.config">
