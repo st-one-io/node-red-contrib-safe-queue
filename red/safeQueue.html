@@ -162,10 +162,12 @@
             <span data-i18n="safe-queue.control.label.operation"></span>
         </label>
         <select type="text" id="node-input-operation">
-            <option value="queue-size"   data-i18n="safe-queue.operation-options.queue-size">  </option>
-            <option value="delete-done"  data-i18n="safe-queue.operation-options.delete-done"> </option>
-            <option value="delete-error" data-i18n="safe-queue.operation-options.delete-error"></option>
-            <option value="delete-queue" data-i18n="safe-queue.operation-options.delete-queue"></option>
+            <option value="queue-size"    data-i18n="safe-queue.operation-options.queue-size">    </option>
+            <option value="done-size"     data-i18n="safe-queue.operation-options.done-size">     </option>
+            <option value="delete-done"   data-i18n="safe-queue.operation-options.delete-done">   </option>
+            <option value="delete-error"  data-i18n="safe-queue.operation-options.delete-error">  </option>
+            <option value="delete-queue"  data-i18n="safe-queue.operation-options.delete-queue">  </option>
+            <option value="resend-errors" data-i18n="safe-queue.operation-options.resend-errors"> </option>
         </select>
     </div>
 
@@ -178,7 +180,7 @@
 <script type="text/javascript">
     RED.nodes.registerType('queue control', {
         category: 'SafeQueue',
-        color: '#a6bbcf',
+        color: '#F3B567',
         defaults: {
             name: {
                 value: ""
@@ -193,9 +195,20 @@
         },
         inputs: 1,
         outputs: 1,
-        icon: "file.png",
+        icon: "debug.png",
         label: function () {
-            return this.name || this._("safe-queue.control.define.name");
+            
+            if(this.name){
+                return this.name;
+            }else{
+                
+                var selectOperation = this.operation;
+                var selectConfig = RED.nodes.node(this.config);
+
+                var newName = selectOperation + " / " + selectConfig.label();
+
+                return newName;
+            }
         },
         oneditprepare: function () {
             var self = this;
@@ -254,8 +267,7 @@
             }
         },
         inputs: 1,
-        outputs: 1,
-        icon: "file.png",
+        icon: "alert.png",
         label: function () {
             return this.name || this._("safe-queue.ack.define.name");
         },
@@ -369,10 +381,60 @@
             },
             storage: {
                 value: "fs"
+            },
+            path:{
+                value: ""
+            },
+            urlDataBase: {
+                value: ""
+            },
+            portDataBase: {
+                value: ""
+            },
+            userDataBase: {
+                value: ""
+            },
+            passwordDataBase: {
+                value: ""
+            },
+            timeoutAck: {
+                value: ""
             }
+
         },
         label: function () {
             return this.name || this._("safe-queue.config.define.name");
+        },
+        oneditprepare: function(){
+            
+            var self = this;
+
+            var storageMode = $('#node-config-input-storage');
+			var fsRow = $('#node-config-queue-config-mode-fs');
+            var dbRow = $('#node-config-queue-config-mode-db');
+            
+            if(self.storage === undefined) {
+				//default for old configurations
+				console.log('change connmode default');
+				self.storage = 'fs'
+				storageMode.val(self.storage);
+			}
+
+
+            storageMode.change(function() {
+				if (storageMode.val() == "fs") {
+					fsRow.show();
+					dbRow.hide();
+				} else if (storageMode.val() == "db"){
+					fsRow.hide();
+					dbRow.show();
+				} else {
+					fsRow.hide();
+					dbRow.hide();
+				}
+			});
+			storageMode.change();
+
         }
     });
 </script>

@@ -23,13 +23,17 @@ module.exports = function (RED) {
     // ------------- SafeQueue Config (queue config) ------------
     function SafeQueueConfig(config) {
         var node = this;
-        //this.storage = new FileSystem("/home/smarttech/Desktop/SafeQueue");
-        this.storage = new FileSystem("c:/SafeQueue");
-        var addInProgress = false;
-        var addProgressOk = false;
-        var addFail = 0;
-        var newMessage = false;
-        var message = null;
+
+        var storageMode = config.storage;
+        var path = config.path;
+
+        if (storageMode == 'fs') {
+            this.storage = new FileSystem(path);
+        } else {
+            if (storageMode == 'bd') {
+
+            }
+        }
 
         RED.nodes.createNode(this, config);
 
@@ -49,21 +53,35 @@ module.exports = function (RED) {
             return this.storage.getQueueSize();
         }
 
+        node.getDoneSize = function getDoneSize() {
+            return this.storage.getDoneSize();
+        }
+
         node.doneMessage = function doneMessage(obj) {
             this.storage.doneMessage(obj);
         }
 
+        node.errorMessage = function errorMessage(obj) {
+            this.storage.errorMessage(obj);
+        }
+
         node.deleteDone = function deleteDone() {
-            this.storage.deleteDone();
+            return this.storage.deleteDone();
         }
 
         node.deleteError = function deleteError() {
-            this.storage.deleteerror();
+            return this.storage.deleteerror();
         }
 
         node.deleteQueue = function deleteQueue() {
-            this.storage.deleteQueue();
+            return this.storage.deleteQueue();
         }
+
+        node.resendErrors = function resendErrors() {
+            return this.storage.resendErrors();
+        }
+
+
 
 
         function defineStorage() {
@@ -160,7 +178,21 @@ module.exports = function (RED) {
             if (operation === 'queue-size') {
 
                 var size = node.config.getQueueSize();
-                msg.payload = size
+                msg.payload = size;
+
+                node.status({
+                    fill: "green",
+                    shape: "dot",
+                    text: size
+                });
+
+
+            }
+
+            if (operation === 'done-size') {
+
+                var size = node.config.getDoneSize();
+                msg.payload = size;
 
                 node.status({
                     fill: "green",
@@ -181,6 +213,10 @@ module.exports = function (RED) {
 
             if (operation === 'delete-done') {
                 msg.payload = node.config.deleteDone();
+            }
+
+            if (operation === 'resend-errors') {
+                msg.payload = node.config.resendErrors();
             }
 
 

@@ -74,6 +74,25 @@ class FileSystem {
         return cont;
     }
 
+    getDoneSize(){
+        var cont = 0;
+       
+        var url = this.path + "/done/";
+        
+        var dirs = fs.readdirSync(url, 'utf8');
+
+        for (var i = 0; i < dirs.length; i++) {
+
+            var newUrl = url + dirs[i] + "/";
+
+            var files = fs.readdirSync(newUrl, 'utf8');
+
+            cont = cont + files.length;
+        }
+
+        return cont;
+    }
+
     doneMessage(obj, callback) {
 
         var date = new Date(Date.now());
@@ -98,22 +117,6 @@ class FileSystem {
 
         fs.rename(uri, newUri, callback);
 
-    }
-
-    getNext() {
-
-        fs.readdir(this.path + "/queue/", 'utf8', function (err, files) {
-
-            if (!err) {
-
-                var ext = pathLib.extname(files[0]);
-
-                if (ext == ".json") {
-                    return files[0];
-                }
-            }
-
-        });
     }
 
     errorMessage(obj, callback) {
@@ -142,6 +145,35 @@ class FileSystem {
 
     }
 
+    resendErrors(){
+        
+        var url = this.path + "/error/";
+        
+        var dirs = fs.readdirSync(url, 'utf8');
+        
+        for (var i = 0; i < dirs.length; i++) {
+
+            var newUrl = url + dirs[i] + "/";
+
+            var files = fs.readdirSync(newUrl, 'utf8');
+
+            for (var x = 0; x < files.length; x++) {
+                fs.renameSync(newUrl + files[x], this.path + "/queue/" + files[x]);
+            }
+
+            fs.rmdirSync(url + dirs[i]);
+        }
+
+        dirs = fs.readdirSync(url, 'utf8');
+
+        if(dirs == 0){
+            return true;
+        }else{
+            return false;
+        }
+
+    }
+
     deleteDone() {
 
         var url = this.path + "/done/";
@@ -160,6 +192,15 @@ class FileSystem {
 
             fs.rmdirSync(url + dirs[i]);
         }
+
+        dirs = fs.readdirSync(url, 'utf8');
+
+        if(dirs == 0){
+            return true;
+        }else{
+            return false;
+        }
+
     }
 
     deleteError() {
@@ -180,6 +221,15 @@ class FileSystem {
 
             fs.rmdirSync(url + dirs[i]);
         }
+
+        dirs = fs.readdirSync(url, 'utf8');
+        
+        if(dirs == 0){
+            return true;
+        }else{
+            return false;
+        }
+
     }
 
     deleteQueue() {
@@ -191,6 +241,15 @@ class FileSystem {
         for (var x = 0; x < files.length; x++) {
             fs.unlinkSync(url + files[x]);
         }
+
+        files = fs.readdirSync(url, 'utf8');
+        
+        if(files == 0){
+            return true;
+        }else{
+            return false;
+        }
+
     }
 
 }

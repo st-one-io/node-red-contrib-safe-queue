@@ -60,7 +60,9 @@
             "queue-size" : "Queue size",
             "delete-queue" : "Delete queue",
             "delete-error" : "Delete error",
-            "delete-done" : "Delete done"
+            "delete-done" : "Delete done",
+            "resend-errors": "Resend errors",
+            "done-size" : "Done size"
         }
     }
     
