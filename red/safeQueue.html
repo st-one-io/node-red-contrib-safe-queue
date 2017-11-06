@@ -162,11 +162,12 @@
             <span data-i18n="safe-queue.control.label.operation"></span>
         </label>
         <select type="text" id="node-input-operation">
-            <option value="queue-size"    data-i18n="safe-queue.operation-options.queue-size">    </option>
-            <option value="done-size"     data-i18n="safe-queue.operation-options.done-size">     </option>
-            <option value="delete-done"   data-i18n="safe-queue.operation-options.delete-done">   </option>
-            <option value="delete-error"  data-i18n="safe-queue.operation-options.delete-error">  </option>
-            <option value="delete-queue"  data-i18n="safe-queue.operation-options.delete-queue">  </option>
+            <option value="queue-size" data-i18n="safe-queue.operation-options.queue-size"> </option>
+            <option value="done-size" data-i18n="safe-queue.operation-options.done-size"> </option>
+            <option value="error-size" data-i18n="safe-queue.operation-options.error-size"> </option>
+            <option value="delete-done" data-i18n="safe-queue.operation-options.delete-done"> </option>
+            <option value="delete-error" data-i18n="safe-queue.operation-options.delete-error"> </option>
+            <option value="delete-queue" data-i18n="safe-queue.operation-options.delete-queue"> </option>
             <option value="resend-errors" data-i18n="safe-queue.operation-options.resend-errors"> </option>
         </select>
     </div>
@@ -197,11 +198,11 @@
         outputs: 1,
         icon: "debug.png",
         label: function () {
-            
-            if(this.name){
+
+            if (this.name) {
                 return this.name;
-            }else{
-                
+            } else {
+
                 var selectOperation = this.operation;
                 var selectConfig = RED.nodes.node(this.config);
 
@@ -382,7 +383,7 @@
             storage: {
                 value: "fs"
             },
-            path:{
+            path: {
                 value: ""
             },
             urlDataBase: {
@@ -405,35 +406,35 @@
         label: function () {
             return this.name || this._("safe-queue.config.define.name");
         },
-        oneditprepare: function(){
-            
+        oneditprepare: function () {
+
             var self = this;
 
             var storageMode = $('#node-config-input-storage');
-			var fsRow = $('#node-config-queue-config-mode-fs');
+            var fsRow = $('#node-config-queue-config-mode-fs');
             var dbRow = $('#node-config-queue-config-mode-db');
-            
-            if(self.storage === undefined) {
-				//default for old configurations
-				console.log('change connmode default');
-				self.storage = 'fs'
-				storageMode.val(self.storage);
-			}
+
+            if (self.storage === undefined) {
+                //default for old configurations
+                console.log('change connmode default');
+                self.storage = 'fs'
+                storageMode.val(self.storage);
+            }
 
 
-            storageMode.change(function() {
-				if (storageMode.val() == "fs") {
-					fsRow.show();
-					dbRow.hide();
-				} else if (storageMode.val() == "db"){
-					fsRow.hide();
-					dbRow.show();
-				} else {
-					fsRow.hide();
-					dbRow.hide();
-				}
-			});
-			storageMode.change();
+            storageMode.change(function () {
+                if (storageMode.val() == "fs") {
+                    fsRow.show();
+                    dbRow.hide();
+                } else if (storageMode.val() == "db") {
+                    fsRow.hide();
+                    dbRow.show();
+                } else {
+                    fsRow.hide();
+                    dbRow.hide();
+                }
+            });
+            storageMode.change();
 
         }
     });

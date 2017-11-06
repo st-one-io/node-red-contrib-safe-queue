@@ -74,11 +74,11 @@ class FileSystem {
         return cont;
     }
 
-    getDoneSize(){
+    getDoneSize() {
         var cont = 0;
-       
+
         var url = this.path + "/done/";
-        
+
         var dirs = fs.readdirSync(url, 'utf8');
 
         for (var i = 0; i < dirs.length; i++) {
@@ -93,7 +93,27 @@ class FileSystem {
         return cont;
     }
 
-    doneMessage(obj, callback) {
+    getErrorSize() {
+
+        var cont = 0;
+
+        var url = this.path + "/error/";
+
+        var dirs = fs.readdirSync(url, 'utf8');
+
+        for (var i = 0; i < dirs.length; i++) {
+
+            var newUrl = url + dirs[i] + "/";
+
+            var files = fs.readdirSync(newUrl, 'utf8');
+
+            cont = cont + files.length;
+        }
+
+        return cont;
+    }
+
+    doneMessage(obj) {
 
         var date = new Date(Date.now());
 
@@ -115,7 +135,7 @@ class FileSystem {
             });
         }
 
-        fs.rename(uri, newUri, callback);
+        fs.renameSync(uri, newUri);
 
     }
 
@@ -145,12 +165,12 @@ class FileSystem {
 
     }
 
-    resendErrors(){
-        
+    resendErrors() {
+
         var url = this.path + "/error/";
-        
+
         var dirs = fs.readdirSync(url, 'utf8');
-        
+
         for (var i = 0; i < dirs.length; i++) {
 
             var newUrl = url + dirs[i] + "/";
@@ -166,9 +186,9 @@ class FileSystem {
 
         dirs = fs.readdirSync(url, 'utf8');
 
-        if(dirs == 0){
+        if (dirs == 0) {
             return true;
-        }else{
+        } else {
             return false;
         }
 
@@ -195,9 +215,9 @@ class FileSystem {
 
         dirs = fs.readdirSync(url, 'utf8');
 
-        if(dirs == 0){
+        if (dirs == 0) {
             return true;
-        }else{
+        } else {
             return false;
         }
 
@@ -223,10 +243,10 @@ class FileSystem {
         }
 
         dirs = fs.readdirSync(url, 'utf8');
-        
-        if(dirs == 0){
+
+        if (dirs == 0) {
             return true;
-        }else{
+        } else {
             return false;
         }
 
@@ -243,10 +263,10 @@ class FileSystem {
         }
 
         files = fs.readdirSync(url, 'utf8');
-        
-        if(files == 0){
+
+        if (files == 0) {
             return true;
-        }else{
+        } else {
             return false;
         }
 

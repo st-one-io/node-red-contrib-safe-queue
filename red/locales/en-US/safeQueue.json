@@ -2,44 +2,44 @@
     "safe-queue": {
         "in": {
             "label": {
-                
+
             },
-            "define":{
+            "define": {
                 "name": "queue in"
             }
         },
-        "out":{
+        "out": {
             "label": {
-                
+
             },
-            "define":{
+            "define": {
                 "name": "queue out"
             }
         },
-        "control":{
+        "control": {
             "label": {
-                "operation" : "Operation"
-                
+                "operation": "Operation"
+
             },
-            "define":{
+            "define": {
                 "name": "queue control"
             }
         },
-        "config":{
+        "config": {
             "label": {
                 "storage": "Storage type",
                 "timeout-ack": "Timeout ACK"
-                
+
             },
-            "define":{
+            "define": {
                 "name": "queue config"
             }
         },
-        "ack":{
+        "ack": {
             "label": {
-                
+
             },
-            "define":{
+            "define": {
                 "name": "queue ack"
             }
         },
@@ -52,18 +52,19 @@
             "user-data-base": "User",
             "password-data-base": "Password"
         },
-        "storage" : {
-            "file-system" : "File System",
+        "storage": {
+            "file-system": "File System",
             "data-base": "Data Base"
         },
-        "operation-options" : {
-            "queue-size" : "Queue size",
-            "delete-queue" : "Delete queue",
-            "delete-error" : "Delete error",
-            "delete-done" : "Delete done",
+        "operation-options": {
+            "queue-size": "Queue size",
+            "delete-queue": "Delete queue",
+            "delete-error": "Delete error",
+            "delete-done": "Delete done",
             "resend-errors": "Resend errors",
-            "done-size" : "Done size"
+            "done-size": "Done size",
+            "error-size": "Error size"
         }
     }
-    
+
 }

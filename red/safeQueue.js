@@ -57,6 +57,10 @@ module.exports = function (RED) {
             return this.storage.getDoneSize();
         }
 
+        node.getErrorSize = function getErrorSize() {
+            return this.storage.getErrorSize();
+        }
+
         node.doneMessage = function doneMessage(obj) {
             this.storage.doneMessage(obj);
         }
@@ -70,7 +74,7 @@ module.exports = function (RED) {
         }
 
         node.deleteError = function deleteError() {
-            return this.storage.deleteerror();
+            return this.storage.deleteError();
         }
 
         node.deleteQueue = function deleteQueue() {
@@ -81,12 +85,6 @@ module.exports = function (RED) {
             return this.storage.resendErrors();
         }
 
-
-
-
-        function defineStorage() {
-            this.storage = new FileSystem("/home/smarttech/Desktop/SafeQueue/");
-        }
     }
     RED.nodes.registerType("queue config", SafeQueueConfig);
 
@@ -171,7 +169,7 @@ module.exports = function (RED) {
 
         node.on('input', function (msg) {
 
-            console.log(values.operation);
+            //console.log(values.operation);
 
             var operation = values.operation;
 
@@ -181,12 +179,10 @@ module.exports = function (RED) {
                 msg.payload = size;
 
                 node.status({
-                    fill: "green",
+                    fill: "blue",
                     shape: "dot",
                     text: size
                 });
-
-
             }
 
             if (operation === 'done-size') {
@@ -199,8 +195,18 @@ module.exports = function (RED) {
                     shape: "dot",
                     text: size
                 });
+            }
 
+            if (operation === 'error-size') {
 
+                var size = node.config.getErrorSize();
+                msg.payload = size;
+
+                node.status({
+                    fill: "red",
+                    shape: "dot",
+                    text: size
+                });
             }
 
             if (operation === 'delete-queue') {
@@ -236,13 +242,7 @@ module.exports = function (RED) {
 
         node.on('input', function (msg) {
 
-            node.config.doneMessage(msg.payload, function (err) {
-                if (!err) {
-
-                } else {
-                    node.error(err);
-                }
-            });
+            node.config.doneMessage(msg.payload);
 
         });
     }
