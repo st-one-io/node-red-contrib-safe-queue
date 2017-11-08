@@ -1,15 +1,19 @@
 const fs = require('fs');
 const pathLib = require('path');
+const queueFolder = "queue";
+const doneFolder = "done";
+const errorFolder = "error";
+
 
 class FileSystem {
 
     constructor(path) {
         this.path = path;
 
-        var urlBase = this.path;
-        var uriQueue = this.path + "/queue";
-        var uriDone = this.path + "/done";
-        var uriError = this.path + "/error";
+        var urlBase  = pathLib.join(this.path);
+        var uriQueue = pathLib.join(this.path, queueFolder);
+        var uriDone  = pathLib.join(this.path, doneFolder);
+        var uriError = pathLib.join(this.path, errorFolder);
 
         if (!fs.existsSync(urlBase)) {
             fs.mkdir(urlBase, function (err) {
@@ -56,64 +60,136 @@ class FileSystem {
 
 
     saveMessage(obj, callback) {
-        const uri = this.path + "/queue/" + obj._msgid + ".json";
+        const uri = pathLib.join(this.path, queueFolder, obj._msgid + ".json");
         fs.writeFile(uri, JSON.stringify(obj.payload), callback);
     }
 
     getMessage(obj, callback) {
-        const uri = this.path + "/queue/" + obj;
+        const uri = this.path + queueFolder + obj;
         fs.readFile(uri, 'utf8', callback);
     }
 
     getListFiles(callback) {
-        fs.readdir(this.path + "/queue/", 'utf8', callback);
+        const uri = pathLib.join(this.path, queueFolder);
+        fs.readdir(uri , 'utf8', callback);
     }
 
-    getQueueSize() {
-        var cont = fs.readdirSync(this.path + "/queue/", 'utf8').length;
-        return cont;
+    
+    getNext(callback) {
+
+        var error = null;
+        var results = null;
+
+        const uri = pathLib.join(this.path, queueFolder);
+        fs.readdir(uri , 'utf8', function(err, files){
+            error = err;
+           if(!err){
+
+                console.log("Files: " + files[0]);
+
+               if(typeof files[0] !== 'undefined'){
+                   results = files[0];
+               }else{
+                   results = null;
+               }
+                
+                callback(error, results);
+            }else{
+                results = null;
+                callback(error, results);
+            }
+        });
     }
 
-    getDoneSize() {
+    getQueueSize(callback) {
+        const uri = pathLib.join(this.path, queueFolder);
+
+        var cont = null;
+        var error = null;
+        
+        fs.readdir(uri, 'utf8', function (err, files) {
+
+            if (!err) {
+                cont = files.length;
+            } else {
+                console.log(err);
+            }
+
+            error = err;
+            callback(error, cont);
+
+        });
+    }
+
+    getDoneSize(callback) {
+        const url = pathLib.join(this.path, doneFolder);
+        
         var cont = 0;
+        var error = null;
+        var turn = 0;
+        
+        fs.readdir(url, 'utf8', function (err, dirs) {
 
-        var url = this.path + "/done/";
+            if (!err) {
 
-        var dirs = fs.readdirSync(url, 'utf8');
+                for (let x = 0; x < dirs.length; x++) {
 
-        for (var i = 0; i < dirs.length; i++) {
+                    var newUrl = pathLib.join(url, dirs[x]);
 
-            var newUrl = url + dirs[i] + "/";
+                    fs.readdir(newUrl, 'utf8', function (err, files) {
 
-            var files = fs.readdirSync(newUrl, 'utf8');
+                        if (!err) {
+                            cont = cont + files.length;
+                            turn++;
+                            if(turn == dirs.length){
+                                callback(error, cont);
+                            }  
+                            
+                        } else {
+                            console.log(err);
+                        }
+                    });
+                }
+            }
+        });
 
-            cont = cont + files.length;
-        }
 
-        return cont;
     }
 
-    getErrorSize() {
+    getErrorSize(callback) {
+        const url = pathLib.join(this.path, errorFolder);
 
         var cont = 0;
+        var error = null;
+        var turn = 0;
+        
+        fs.readdir(url, 'utf8', function (err, dirs) {
 
-        var url = this.path + "/error/";
+            if (!err) {
 
-        var dirs = fs.readdirSync(url, 'utf8');
+                for (let x = 0; x < dirs.length; x++) {
 
-        for (var i = 0; i < dirs.length; i++) {
+                    var newUrl = pathLib.join(url, dirs[x]);
 
-            var newUrl = url + dirs[i] + "/";
+                    fs.readdir(newUrl, 'utf8', function (err, files) {
 
-            var files = fs.readdirSync(newUrl, 'utf8');
-
-            cont = cont + files.length;
-        }
-
-        return cont;
+                        if (!err) {
+                            cont = cont + files.length;
+                            turn++;
+                            if(turn == dirs.length){
+                                callback(error, cont);
+                            }  
+                            
+                        } else {
+                            console.log(err);
+                        }
+                    });
+                }
+            }
+        });
     }
 
-    doneMessage(obj) {
+    doneMessage(obj, callback) {
 
         var date = new Date(Date.now());
 
@@ -121,21 +197,84 @@ class FileSystem {
         var year = date.getFullYear();
         var month = (date.getMonth() + 1);
 
-        const uri = this.path + "/queue/" + obj;
-        const baseNewUri = this.path + "/done/" + year + "-" + month + "-" + day + "/";
-        const newUri = baseNewUri + obj;
+        const uri = pathLib.join(this.path, queueFolder, obj);
+        const baseNewUri = pathLib.join(this.path, doneFolder,  year + "-" + month + "-" + day );
+        const newUri = pathLib.join(baseNewUri, obj);
 
-        if (!fs.existsSync(baseNewUri)) {
-            fs.mkdir(baseNewUri, function (err) {
-                if (!err) {
-                    console.log("create repository");
-                } else {
-                    console.log("-->mkdir_error: " + err);
+        var error = null;
+        var results = null;
+
+        fs.stat(baseNewUri, function(err, stats){
+            
+            error = err;
+
+            if(!err){
+                if(!stats.isDirectory()){
+
+                    fs.mkdir(baseNewUri, function (err) {
+                        error = err;
+
+                        if (!err) {
+                            
+                            console.log("create repository: " + baseNewUri);
+
+                            fs.rename(uri, newUri, function(err){
+                                error = err;
+                                
+                                if(!err){
+                                    results = true;
+                                    callback(error, results);
+                                }else{
+                                    results = false;
+                                    callback(error, results);
+                                }
+                            });
+                        } 
+                    });
+
+                }else{
+                    
+                    fs.rename(uri, newUri, function(err){
+                        
+                        error = err;
+
+                        if(!err){
+                            results = true;
+                            callback(error, results);
+                        }else{
+                            results = false;
+                            callback(error, results);
+                        }
+                    });
                 }
-            });
-        }
+            }else{
+                
+                fs.mkdir(baseNewUri, function (err) {
+                    error = err;
 
-        fs.renameSync(uri, newUri);
+                    if (!err) {
+                        
+                        console.log("create repository: " + baseNewUri);
+
+                        fs.rename(uri, newUri, function(err){
+                            error = err;
+                            
+                            if(!err){
+                                results = true;
+                                callback(error, results);
+                            }else{
+                                results = false;
+                                callback(error, results);
+                            }
+                        });
+                    } 
+                });
+
+            }
+        });
+
+
+        
 
     }
 

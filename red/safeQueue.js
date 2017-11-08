@@ -16,6 +16,9 @@
 
 const FileSystem = require('./FileSystem.js');
 const fs = require('fs');
+var inProccess = false;
+var messageInProccess = null;
+var timer;
 
 module.exports = function (RED) {
     "use strict";
@@ -29,6 +32,7 @@ module.exports = function (RED) {
 
         if (storageMode == 'fs') {
             this.storage = new FileSystem(path);
+
         } else {
             if (storageMode == 'bd') {
 
@@ -49,20 +53,24 @@ module.exports = function (RED) {
             this.storage.getListFiles(callback);
         }
 
-        node.getQueueSize = function getQueueSize() {
-            return this.storage.getQueueSize();
+        node.getNext = function getNext(callback) {
+            this.storage.getNext(callback);
         }
 
-        node.getDoneSize = function getDoneSize() {
-            return this.storage.getDoneSize();
+        node.getQueueSize = function getQueueSize(callback) {
+            this.storage.getQueueSize(callback);
         }
 
-        node.getErrorSize = function getErrorSize() {
-            return this.storage.getErrorSize();
+        node.getDoneSize = function getDoneSize(callback) {
+            this.storage.getDoneSize(callback);
         }
 
-        node.doneMessage = function doneMessage(obj) {
-            this.storage.doneMessage(obj);
+        node.getErrorSize = function getErrorSize(callback) {
+            this.storage.getErrorSize(callback);
+        }
+
+        node.doneMessage = function doneMessage(obj, callback) {
+            this.storage.doneMessage(obj, callback);
         }
 
         node.errorMessage = function errorMessage(obj) {
@@ -83,6 +91,31 @@ module.exports = function (RED) {
 
         node.resendErrors = function resendErrors() {
             return this.storage.resendErrors();
+        }
+
+        node.setProccess = function setProccess(msg){
+            messageInProccess = msg;
+            inProccess = true;
+
+            timer = setTimeout(node.checkError, 5000);
+
+        }
+
+        node.resetProccess = function resetProccess(){
+            messageInProccess = null;
+            inProccess = false;
+
+            clearTimeout(timer);
+        }
+
+        node.checkError = function checkError(){
+            if(inProccess){
+                //ocorreu erro
+                node.errorMessage(messageInProccess);
+
+                node.resetProccess();
+
+            }
         }
 
     }
@@ -139,20 +172,22 @@ module.exports = function (RED) {
 
         node.on('input', function (msg) {
 
-            node.config.getListFiles(function (err, files) {
+            if(!inProccess){
 
-                if (!err) {
-                    for (var i = 0; i < files.length; i++) {
+                node.config.getNext(function(err, results){
+                    if(!err){
+                         
+                        if(results != null){
+                            node.config.setProccess(results);
+                            msg.payload = results;
+                            node.send(msg);
+                        }
 
-                        msg.payload = files[i];
-
-                        node.send(msg);
-
+                    }else{
+                        console.log("Error: " + err);
                     }
-                }
-
-            });
-
+                });
+            }
         });
 
     }
@@ -175,37 +210,61 @@ module.exports = function (RED) {
 
             if (operation === 'queue-size') {
 
-                var size = node.config.getQueueSize();
-                msg.payload = size;
+                node.config.getQueueSize(function (error, results) {
 
-                node.status({
-                    fill: "blue",
-                    shape: "dot",
-                    text: size
+                    if (!error) {
+                        var size = results;
+
+                        node.status({
+                            fill: "blue",
+                            shape: "dot",
+                            text: size
+                        });
+
+                        msg.payload = size;
+                    }else{
+                        node.error(error);
+                    }
                 });
             }
 
             if (operation === 'done-size') {
 
-                var size = node.config.getDoneSize();
-                msg.payload = size;
+                node.config.getDoneSize(function(error, results){
+                    
+                    if (!error) {
+                        
+                        var size = results;
+                        node.status({
+                            fill: "green",
+                            shape: "dot",
+                            text: size
+                        });
 
-                node.status({
-                    fill: "green",
-                    shape: "dot",
-                    text: size
+                        msg.payload = size;
+                    }else{
+                        node.error(error);
+                    }
                 });
             }
 
             if (operation === 'error-size') {
 
-                var size = node.config.getErrorSize();
-                msg.payload = size;
+                node.config.getErrorSize(function(error, results){
+                    
+                    if (!error) {
+                        
+                        var size = results;
+                        node.status({
+                            fill: "red",
+                            shape: "dot",
+                            text: size
+                        });
 
-                node.status({
-                    fill: "red",
-                    shape: "dot",
-                    text: size
+                        msg.payload = size;
+                    }else{
+                        node.error(error);
+                    }
                 });
             }
 
@@ -242,7 +301,13 @@ module.exports = function (RED) {
 
         node.on('input', function (msg) {
 
-            node.config.doneMessage(msg.payload);
+            node.config.doneMessage(msg.payload, function(err, results){
+                if(!err){
+                    node.config.resetProccess();
+                }else{
+                    console.log("--Error: " + err);
+                }
+            });
 
         });
     }
