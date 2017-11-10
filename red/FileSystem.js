@@ -1,18 +1,20 @@
 const fs = require('fs');
 const pathLib = require('path');
+const EventEmitter = require('events');
 const queueFolder = "queue";
 const doneFolder = "done";
 const errorFolder = "error";
+const extension = ".json";
 
-
-class FileSystem {
+class FileSystem extends EventEmitter {
 
     constructor(path) {
+        super();
         this.path = path;
 
-        var urlBase  = pathLib.join(this.path);
+        var urlBase = pathLib.join(this.path);
         var uriQueue = pathLib.join(this.path, queueFolder);
-        var uriDone  = pathLib.join(this.path, doneFolder);
+        var uriDone = pathLib.join(this.path, doneFolder);
         var uriError = pathLib.join(this.path, errorFolder);
 
         if (!fs.existsSync(urlBase)) {
@@ -55,58 +57,25 @@ class FileSystem {
             });
         }
 
+
+        fs.watch(uriQueue, (eventType, fileName) => this.onChange(eventType, fileName));
+
         console.log("FileSystem - path: " + this.path);
     }
 
-
-    saveMessage(obj, callback) {
-        const uri = pathLib.join(this.path, queueFolder, obj._msgid + ".json");
-        fs.writeFile(uri, JSON.stringify(obj.payload), callback);
+    onChange(eventType, fileName) {
+        if (eventType == 'change') {
+            this.emit('newFile');
+        }
     }
 
-    getMessage(obj, callback) {
-        const uri = this.path + queueFolder + obj;
-        fs.readFile(uri, 'utf8', callback);
-    }
-
-    getListFiles(callback) {
-        const uri = pathLib.join(this.path, queueFolder);
-        fs.readdir(uri , 'utf8', callback);
-    }
-
-    
-    getNext(callback) {
-
-        var error = null;
-        var results = null;
-
-        const uri = pathLib.join(this.path, queueFolder);
-        fs.readdir(uri , 'utf8', function(err, files){
-            error = err;
-           if(!err){
-
-                console.log("Files: " + files[0]);
-
-               if(typeof files[0] !== 'undefined'){
-                   results = files[0];
-               }else{
-                   results = null;
-               }
-                
-                callback(error, results);
-            }else{
-                results = null;
-                callback(error, results);
-            }
-        });
-    }
-
+    //--> GET SIZES
     getQueueSize(callback) {
         const uri = pathLib.join(this.path, queueFolder);
 
-        var cont = null;
+        var cont = 0;
         var error = null;
-        
+
         fs.readdir(uri, 'utf8', function (err, files) {
 
             if (!err) {
@@ -123,11 +92,11 @@ class FileSystem {
 
     getDoneSize(callback) {
         const url = pathLib.join(this.path, doneFolder);
-        
+
         var cont = 0;
         var error = null;
         var turn = 0;
-        
+
         fs.readdir(url, 'utf8', function (err, dirs) {
 
             if (!err) {
@@ -141,10 +110,10 @@ class FileSystem {
                         if (!err) {
                             cont = cont + files.length;
                             turn++;
-                            if(turn == dirs.length){
+                            if (turn == dirs.length) {
                                 callback(error, cont);
-                            }  
-                            
+                            }
+
                         } else {
                             console.log(err);
                         }
@@ -152,8 +121,6 @@ class FileSystem {
                 }
             }
         });
-
-
     }
 
     getErrorSize(callback) {
@@ -162,7 +129,7 @@ class FileSystem {
         var cont = 0;
         var error = null;
         var turn = 0;
-        
+
         fs.readdir(url, 'utf8', function (err, dirs) {
 
             if (!err) {
@@ -176,10 +143,10 @@ class FileSystem {
                         if (!err) {
                             cont = cont + files.length;
                             turn++;
-                            if(turn == dirs.length){
+                            if (turn == dirs.length) {
                                 callback(error, cont);
-                            }  
-                            
+                            }
+
                         } else {
                             console.log(err);
                         }
@@ -187,6 +154,14 @@ class FileSystem {
                 }
             }
         });
+    }
+    //--> GET SIZES    
+
+
+    //--> CONTROL FILES
+    saveMessage(obj, callback) {
+        const uri = pathLib.join(this.path, queueFolder, obj._msgid + extension);
+        fs.writeFile(uri, JSON.stringify(obj.payload), callback);
     }
 
     doneMessage(obj, callback) {
@@ -197,85 +172,58 @@ class FileSystem {
         var year = date.getFullYear();
         var month = (date.getMonth() + 1);
 
-        const uri = pathLib.join(this.path, queueFolder, obj);
-        const baseNewUri = pathLib.join(this.path, doneFolder,  year + "-" + month + "-" + day );
-        const newUri = pathLib.join(baseNewUri, obj);
+        const uri = pathLib.join(this.path, queueFolder, obj + extension);
+        const baseNewUri = pathLib.join(this.path, doneFolder, year + "-" + month + "-" + day);
+        const newUri = pathLib.join(baseNewUri, obj + extension);
 
         var error = null;
         var results = null;
 
-        fs.stat(baseNewUri, function(err, stats){
-            
+        fs.stat(baseNewUri, function (err, stats) {
+
             error = err;
 
-            if(!err){
-                if(!stats.isDirectory()){
+            if (!err) {
+                if (stats.isDirectory()) {
+                    fs.rename(uri, newUri, function (err) {
 
-                    fs.mkdir(baseNewUri, function (err) {
                         error = err;
 
                         if (!err) {
-                            
-                            console.log("create repository: " + baseNewUri);
-
-                            fs.rename(uri, newUri, function(err){
-                                error = err;
-                                
-                                if(!err){
-                                    results = true;
-                                    callback(error, results);
-                                }else{
-                                    results = false;
-                                    callback(error, results);
-                                }
-                            });
-                        } 
-                    });
-
-                }else{
-                    
-                    fs.rename(uri, newUri, function(err){
-                        
-                        error = err;
-
-                        if(!err){
                             results = true;
                             callback(error, results);
-                        }else{
+                        } else {
                             results = false;
                             callback(error, results);
                         }
                     });
+
                 }
-            }else{
-                
+            } else {
+
                 fs.mkdir(baseNewUri, function (err) {
                     error = err;
 
                     if (!err) {
-                        
-                        console.log("create repository: " + baseNewUri);
 
-                        fs.rename(uri, newUri, function(err){
+                        console.log("\n --> doneMessage - Create repository: " + baseNewUri);
+
+                        fs.rename(uri, newUri, function (err) {
                             error = err;
-                            
-                            if(!err){
+
+                            if (!err) {
                                 results = true;
                                 callback(error, results);
-                            }else{
+                            } else {
                                 results = false;
                                 callback(error, results);
                             }
                         });
-                    } 
+                    }
                 });
 
             }
         });
-
-
-        
-
     }
 
     errorMessage(obj, callback) {
@@ -286,24 +234,110 @@ class FileSystem {
         var year = date.getFullYear();
         var month = (date.getMonth() + 1);
 
-        const uri = this.path + "/queue/" + obj;
-        const baseNewUri = this.path + "/error/" + year + "-" + month + "-" + day + "/";
-        const newUri = baseNewUri + obj;
+        const uri = pathLib.join(this.path, queueFolder, obj + extension);
+        const baseNewUri = pathLib.join(this.path, errorFolder, year + "-" + month + "-" + day);
+        const newUri = pathLib.join(baseNewUri, obj + extension);
 
-        if (!fs.existsSync(baseNewUri)) {
-            fs.mkdir(baseNewUri, function (err) {
-                if (!err) {
-                    console.log("create repository");
-                } else {
-                    console.log("-->mkdir_error: " + err);
+        var error = null;
+        var results = null;
+
+        fs.stat(baseNewUri, function (err, stats) {
+
+            error = err;
+
+            if (!err) {
+                if (stats.isDirectory()) {
+                    fs.rename(uri, newUri, function (err) {
+
+                        error = err;
+
+                        if (!err) {
+                            results = true;
+                            callback(error, results);
+                        } else {
+                            results = false;
+                            callback(error, results);
+                        }
+                    });
+
                 }
-            });
-        }
+            } else {
 
-        fs.rename(uri, newUri, callback);
+                fs.mkdir(baseNewUri, function (err) {
+                    error = err;
+
+                    if (!err) {
+
+                        console.log("\n --> errorMessage - Create repository: " + baseNewUri);
+
+                        fs.rename(uri, newUri, function (err) {
+                            error = err;
+
+                            if (!err) {
+                                results = true;
+                                callback(error, results);
+                            } else {
+                                results = false;
+                                callback(error, results);
+                            }
+                        });
+                    }
+                });
+
+            }
+        });
 
     }
+    //--> CONTROL FILES
 
+    //--> GET FILES
+    getMessage(obj, callback) {
+        const uri = pathLib.join(this.path, queueFolder, obj + extension);
+
+        var error = null;
+        var results = {};
+
+        fs.readFile(uri, 'utf8', function (err, data) {
+
+            error = err;
+
+            if (!err) {
+                results = data;
+            }
+
+            callback(error, results);
+
+        });
+    }
+
+    getListFiles(callback) {
+        const uri = pathLib.join(this.path, queueFolder);
+
+        var error = null;
+
+
+        fs.readdir(uri, 'utf8', function (err, files) {
+
+            error = err;
+            var listFiles = [];
+
+            if (!err) {
+                for (var file of files) {
+
+                    const uriFile = pathLib.join(uri, file);
+                    var baseName = pathLib.basename(uriFile, extension);
+
+
+                    listFiles.push(baseName);
+                }
+            }
+            callback(error, listFiles);
+        });
+    }
+    //--> GET FILES
+
+
+    //--> Métodos desatualizados 
     resendErrors() {
 
         var url = this.path + "/error/";
@@ -410,6 +444,8 @@ class FileSystem {
         }
 
     }
+    //--> Métodos desatualizados 
+
 
 }
 
