@@ -425,6 +425,8 @@ module.exports = function (RED) {
                         });
 
                         msg.payload = size;
+                        node.send(msg);
+
                     } else {
                         node.error(error);
                     }
@@ -445,6 +447,8 @@ module.exports = function (RED) {
                         });
 
                         msg.payload = size;
+                        node.send(msg);
+
                     } else {
                         node.error(error);
                     }
@@ -464,6 +468,8 @@ module.exports = function (RED) {
                         });
 
                         msg.payload = size;
+                        node.send(msg);
+
                     } else {
                         node.error(error);
                     }
@@ -490,11 +496,11 @@ module.exports = function (RED) {
                 for (var x = 0; x < node.config.getOutNodeRegisters(); x++) {
                     node.config.proccessQueue();
                 }
-
+                node.send(msg);
             }
 
 
-            node.send(msg);
+           
         });
     }
     RED.nodes.registerType("queue control", SafeQueueControl);
