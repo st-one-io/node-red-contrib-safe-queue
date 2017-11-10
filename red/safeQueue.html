@@ -98,6 +98,8 @@
 
 <script type="text/x-red" data-help-name="queue out">
     <p>SafeQueue Out</p>
+    <p>msg.id : Chave única de identificação da mensagem, usado pelo "SafeQueue ACK" </p>
+    <p>msg.payload : Mensagem transmitida </p>
 </script>
 
 <script type="text/javascript">
@@ -165,10 +167,13 @@
             <option value="queue-size" data-i18n="safe-queue.operation-options.queue-size"> </option>
             <option value="done-size" data-i18n="safe-queue.operation-options.done-size"> </option>
             <option value="error-size" data-i18n="safe-queue.operation-options.error-size"> </option>
-            <option value="delete-done" data-i18n="safe-queue.operation-options.delete-done"> </option>
-            <option value="delete-error" data-i18n="safe-queue.operation-options.delete-error"> </option>
-            <option value="delete-queue" data-i18n="safe-queue.operation-options.delete-queue"> </option>
-            <option value="resend-errors" data-i18n="safe-queue.operation-options.resend-errors"> </option>
+
+            <!-- <option value="delete-done" data-i18n="safe-queue.operation-options.delete-done"> </option>  -->
+            <!-- <option value="delete-error" data-i18n="safe-queue.operation-options.delete-error"> </option> -->
+            <!-- <option value="delete-queue" data-i18n="safe-queue.operation-options.delete-queue"> </option> -->
+            <!-- <option value="resend-errors" data-i18n="safe-queue.operation-options.resend-errors"> </option> -->
+
+            <option value="start-proccess" data-i18n="safe-queue.operation-options.start-proccess"> </option>
         </select>
     </div>
 
@@ -252,6 +257,8 @@
 
 <script type="text/x-red" data-help-name="queue ack">
     <p>SafeQueue Acknowledge</p>
+    <p>Para confirmação do envio da mensagem esse nó precisa receber no msg.id : a chave única de identificação da 
+        mensagem enviada pelo "SafeQueue OUT" no campo msg.id</p>
 </script>
 
 <script type="text/javascript">
@@ -308,7 +315,7 @@
         </label>
         <select type="text" id="node-config-input-storage">
             <option value="fs" data-i18n="safe-queue.storage.file-system"></option>
-            <option value="db" data-i18n="safe-queue.storage.data-base"></option>
+            <!-- <option value="db" data-i18n="safe-queue.storage.data-base"></option> -->
         </select>
     </div>
 

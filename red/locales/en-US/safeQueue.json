@@ -63,7 +63,8 @@
             "delete-done": "Delete done",
             "resend-errors": "Resend errors",
             "done-size": "Done size",
-            "error-size": "Error size"
+            "error-size": "Error size",
+            "start-proccess": "Start proccess"
         }
     }
 
