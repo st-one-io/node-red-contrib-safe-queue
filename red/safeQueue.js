@@ -16,9 +16,7 @@
 
 const FileSystem = require('./FileSystem.js');
 const fs = require('fs');
-var inProccess = false;
-var messageInProccess = null;
-var timer;
+
 
 module.exports = function (RED) {
     "use strict";
@@ -26,11 +24,21 @@ module.exports = function (RED) {
     // ------------- SafeQueue Config (queue config) ------------
     function SafeQueueConfig(config) {
         var node = this;
-
+        this.timeOut = config.timeoutAck;
         var storageMode = config.storage;
         var path = config.path;
 
+        this.inProccess = new Map();
+
+        this.listNodeOut = [];
+
+        this.virtualQueue = new Map();
+
+        this.controlInit = false;
+
+
         if (storageMode == 'fs') {
+
             this.storage = new FileSystem(path);
 
         } else {
@@ -40,6 +48,29 @@ module.exports = function (RED) {
         }
 
         RED.nodes.createNode(this, config);
+
+        this.storage.on('newFile', () => {
+            node.proccessQueue();
+        });
+
+
+
+        node.init = function init() {
+
+            this.storage.getListFiles(function (err, files) {
+                if (!err) {
+                    for (var file of files) {
+                        node.addVirtualQueue(file);
+                    }
+                }
+            });
+
+            //node.proccessQueue();
+        }
+
+        node.getVirtualQueue = function getVirtualQueue() {
+            return this.virtualQueue;
+        }
 
         node.saveMessage = function saveMessage(obj, callback) {
             this.storage.saveMessage(obj, callback);
@@ -51,10 +82,6 @@ module.exports = function (RED) {
 
         node.getListFiles = function getListFiles(callback) {
             this.storage.getListFiles(callback);
-        }
-
-        node.getNext = function getNext(callback) {
-            this.storage.getNext(callback);
         }
 
         node.getQueueSize = function getQueueSize(callback) {
@@ -73,10 +100,175 @@ module.exports = function (RED) {
             this.storage.doneMessage(obj, callback);
         }
 
-        node.errorMessage = function errorMessage(obj) {
-            this.storage.errorMessage(obj);
+        node.errorMessage = function errorMessage(obj, callback) {
+            this.storage.errorMessage(obj, callback);
         }
 
+        //-------------
+
+        node.setProccess = function setProccess(keyMessage) {
+            var item = {};
+
+            const timer = setTimeout(node.checkError, this.timeOut);
+
+            item.timer = timer;
+            item.keyMessage = keyMessage;
+            item.inProccess = true;
+
+            this.inProccess.set(keyMessage, item);
+        }
+
+        node.resetProccess = function resetProccess(keyMessage) {
+            var item = this.inProccess.get(keyMessage);
+            clearTimeout(item.timer);
+        }
+
+        node.getListInProccess = function getListInProccess() {
+            return this.inProccess;
+        }
+
+        node.checkError = function checkError() {
+
+            var idTimer = this._idleStart;
+
+            var listProccess = node.getListInProccess();
+
+            for (var value of listProccess.values()) {
+
+                if (value.timer._idleStart == idTimer) {
+
+                    node.warn('Fail sending: ' + value.keyMessage);
+
+                    node.resetProccess(value.keyMessage);
+                    node.removeVirtualQueue(value.keyMessage);
+
+                    node.errorMessage(value.keyMessage, function (err, results) {
+
+                        if (err) {
+                            node.error(err);
+                        } else {
+                            if (results) {
+
+                            }
+                        }
+                    });
+
+                    return;
+
+                }
+            }
+
+        }
+
+        node.getInit = function getInit() {
+            return this.controlInit;
+        }
+
+        node.setInit = function setInit(value) {
+            this.controlInit = value;
+        }
+
+        node.registerOut = function registerOut(nodeOut) {
+            this.listNodeOut.push(nodeOut);
+
+            if (!node.getInit()) {
+                node.init();
+                node.setInit(true);
+            }
+
+
+            console.log("-->Nodes OUT:", this.listNodeOut.length);
+        }
+
+        node.addVirtualQueue = function addVirtualQueue(keyMessage) {
+
+            let object = {};
+
+            object.keyMessage = keyMessage;
+            object.proccess = false;
+            object.nodeOut = null;
+            object.timer = null;
+
+            this.virtualQueue.set(keyMessage, object);
+        }
+
+        node.removeVirtualQueue = function removeVirtualQueue(keyMessage) {
+
+            var map = this.virtualQueue.get(keyMessage);
+
+            var out = RED.nodes.getNode(map.nodeOut);
+
+            out.resetOutInProccess();
+
+            this.virtualQueue.delete(keyMessage);
+
+            this.inProccess.delete(keyMessage);
+
+            node.proccessQueue();
+        }
+
+        node.getMessageProccess = function getMessageProccess() {
+            var mapMessage = this.virtualQueue;
+
+            for (var key of mapMessage.keys()) {
+                var message = {};
+                message = mapMessage.get(key);
+                message.key = key;
+
+                if (!message.proccess) {
+                    return message;
+                }
+            }
+            return null;
+        }
+
+        node.getNodeOut = function getNodeOut() {
+
+            var listNodes = this.listNodeOut;
+
+            for (var x = 0; x < listNodes.length; x++) {
+                if (!listNodes[x].getOutInProccess()) {
+                    return listNodes[x].id;
+                }
+            }
+
+            return null;
+        }
+
+        node.getOutNodeRegisters = function getOutNodeRegisters() {
+
+            var listNodes = this.listNodeOut;
+            return listNodes.length;
+
+        }
+
+        node.proccessQueue = function proccessQueue() {
+
+            var idNodeOut = node.getNodeOut();
+
+            if (idNodeOut != null) {
+
+                var message = node.getMessageProccess();
+
+                if (message != null) {
+
+                    var nodeOut = RED.nodes.getNode(idNodeOut);
+
+                    nodeOut.setOutInProccess();
+
+                    message.proccess = true;
+                    message.nodeOut = idNodeOut;
+
+                    this.virtualQueue.set(message.key, message);
+
+                    nodeOut.sendMessage(message.key);
+                }
+            }
+        }
+
+
+
+        //--> Métodos desatualizados 
         node.deleteDone = function deleteDone() {
             return this.storage.deleteDone();
         }
@@ -92,31 +284,7 @@ module.exports = function (RED) {
         node.resendErrors = function resendErrors() {
             return this.storage.resendErrors();
         }
-
-        node.setProccess = function setProccess(msg){
-            messageInProccess = msg;
-            inProccess = true;
-
-            timer = setTimeout(node.checkError, 5000);
-
-        }
-
-        node.resetProccess = function resetProccess(){
-            messageInProccess = null;
-            inProccess = false;
-
-            clearTimeout(timer);
-        }
-
-        node.checkError = function checkError(){
-            if(inProccess){
-                //ocorreu erro
-                node.errorMessage(messageInProccess);
-
-                node.resetProccess();
-
-            }
-        }
+        //--> Métodos desatualizados 
 
     }
     RED.nodes.registerType("queue config", SafeQueueConfig);
@@ -141,6 +309,10 @@ module.exports = function (RED) {
             node.config.saveMessage(msg, function (err) {
                 if (!err) {
                     node.send(msg);
+
+                    node.config.addVirtualQueue(msg._msgid);
+                    node.config.proccessQueue();
+
                     node.status({
                         fill: "green",
                         shape: "dot",
@@ -150,6 +322,7 @@ module.exports = function (RED) {
                     node.error(err);
                     msg.error = err;
                     node.send(msg);
+
                     node.status({
                         fill: "red",
                         shape: "dot",
@@ -166,29 +339,59 @@ module.exports = function (RED) {
 
         var node = this;
 
+        this.outInProccess = false;
+        this.timer = null;
+        this.keyMessage = null;
+
         RED.nodes.createNode(this, values);
 
         node.config = RED.nodes.getNode(values.config);
 
-        node.on('input', function (msg) {
+        node.config.registerOut(node);
 
-            if(!inProccess){
 
-                node.config.getNext(function(err, results){
-                    if(!err){
-                         
-                        if(results != null){
-                            node.config.setProccess(results);
-                            msg.payload = results;
-                            node.send(msg);
-                        }
+        node.setOutInProccess = function setOutInProccess() {
+            this.outInProccess = true;
 
-                    }else{
-                        console.log("Error: " + err);
-                    }
-                });
-            }
-        });
+            node.status({
+                fill: "red",
+                shape: "dot",
+                text: "proccess"
+            });
+        }
+
+        node.resetOutInProccess = function resetOutInProccess() {
+            this.outInProccess = false;
+
+            node.status({
+                fill: "green",
+                shape: "dot",
+                text: "free"
+            });
+        }
+
+        node.getOutInProccess = function getOutInProccess() {
+            return this.outInProccess;
+        }
+
+
+        node.sendMessage = function sendMessage(keyMessage) {
+            var msg = {};
+            this.keyMessage = keyMessage;
+
+            node.config.getMessage(keyMessage, function (err, results) {
+
+                if (!err) {
+                    msg.id = keyMessage;
+                    msg.payload = results;
+                    node.send(msg);
+                    node.config.setProccess(keyMessage);
+                }
+
+
+            });
+        }
+
 
     }
     RED.nodes.registerType("queue out", SafeQueueOut);
@@ -222,7 +425,7 @@ module.exports = function (RED) {
                         });
 
                         msg.payload = size;
-                    }else{
+                    } else {
                         node.error(error);
                     }
                 });
@@ -230,10 +433,10 @@ module.exports = function (RED) {
 
             if (operation === 'done-size') {
 
-                node.config.getDoneSize(function(error, results){
-                    
+                node.config.getDoneSize(function (error, results) {
+
                     if (!error) {
-                        
+
                         var size = results;
                         node.status({
                             fill: "green",
@@ -242,7 +445,7 @@ module.exports = function (RED) {
                         });
 
                         msg.payload = size;
-                    }else{
+                    } else {
                         node.error(error);
                     }
                 });
@@ -250,10 +453,9 @@ module.exports = function (RED) {
 
             if (operation === 'error-size') {
 
-                node.config.getErrorSize(function(error, results){
-                    
+                node.config.getErrorSize(function (error, results) {
+
                     if (!error) {
-                        
                         var size = results;
                         node.status({
                             fill: "red",
@@ -262,7 +464,7 @@ module.exports = function (RED) {
                         });
 
                         msg.payload = size;
-                    }else{
+                    } else {
                         node.error(error);
                     }
                 });
@@ -284,6 +486,13 @@ module.exports = function (RED) {
                 msg.payload = node.config.resendErrors();
             }
 
+            if (operation === 'start-proccess') {
+                for (var x = 0; x < node.config.getOutNodeRegisters(); x++) {
+                    node.config.proccessQueue();
+                }
+
+            }
+
 
             node.send(msg);
         });
@@ -301,10 +510,11 @@ module.exports = function (RED) {
 
         node.on('input', function (msg) {
 
-            node.config.doneMessage(msg.payload, function(err, results){
-                if(!err){
-                    node.config.resetProccess();
-                }else{
+            node.config.doneMessage(msg.id, function (err, results) {
+                if (!err) {
+                    node.config.resetProccess(msg.id);
+                    node.config.removeVirtualQueue(msg.id);
+                } else {
                     console.log("--Error: " + err);
                 }
             });
