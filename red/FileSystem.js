@@ -161,7 +161,7 @@ class FileSystem extends EventEmitter {
     //--> CONTROL FILES
     saveMessage(obj, callback) {
         const uri = pathLib.join(this.path, queueFolder, obj._msgid + extension);
-        fs.writeFile(uri, JSON.stringify(obj.payload), callback);
+        fs.writeFile(uri, obj.payload, callback);
     }
 
     doneMessage(obj, callback) {
