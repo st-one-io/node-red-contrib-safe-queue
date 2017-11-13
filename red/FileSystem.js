@@ -57,10 +57,36 @@ class FileSystem extends EventEmitter {
             });
         }
 
+        this.createWatch();
 
-        fs.watch(uriQueue, (eventType, fileName) => this.onChange(eventType, fileName));
+        console.log("FileSystem - path: " + urlBase);
+    }
 
-        console.log("FileSystem - path: " + this.path);
+    createWatch() {
+
+        var uriQueue = pathLib.join(this.path, queueFolder);
+
+        var fileSystem = this;
+
+        var watcher = fs.watch(uriQueue, (eventType, fileName) => this.onChange(eventType, fileName));
+
+        watcher.on('error', function (e) {
+            watcher.close();
+            fileSystem.createDirQueue();
+        });
+    }
+
+    createDirQueue() {
+
+        var uriQueue = pathLib.join(this.path, queueFolder);
+
+        do {
+        } while (fs.existsSync(uriQueue));
+
+        fs.mkdirSync(uriQueue);
+
+        this.createWatch();
+
     }
 
     onChange(eventType, fileName) {
@@ -160,8 +186,35 @@ class FileSystem extends EventEmitter {
 
     //--> CONTROL FILES
     saveMessage(obj, callback) {
-        const uri = pathLib.join(this.path, queueFolder, obj._msgid + extension);
-        fs.writeFile(uri, obj.payload, callback);
+
+        const uriBase = pathLib.join(this.path, queueFolder);
+        const uriQueue = pathLib.join(this.path, queueFolder, obj._msgid + extension);
+
+        var error = null;
+        var results = null;
+
+        fs.stat(uriBase, function (err, stats) {
+
+            error = err;
+
+            if (!err) {
+                fs.writeFile(uriQueue, obj.payload, function (err) {
+
+                    error = err;
+
+                    if (!err) {
+                        results = true;
+                    }
+
+                    callback(error, results);
+
+                });
+            } else {
+               callback(error, results);
+            }
+        });
+
+
     }
 
     doneMessage(obj, callback) {

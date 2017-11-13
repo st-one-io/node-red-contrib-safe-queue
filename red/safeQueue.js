@@ -145,11 +145,7 @@ module.exports = function (RED) {
                     node.errorMessage(value.keyMessage, function (err, results) {
 
                         if (err) {
-                            node.error(err);
-                        } else {
-                            if (results) {
-
-                            }
+                            node.error("Fail move the file for dir Error", err);
                         }
                     });
 
@@ -307,6 +303,7 @@ module.exports = function (RED) {
             });
 
             node.config.saveMessage(msg, function (err) {
+
                 if (!err) {
                     node.send(msg);
 
@@ -319,7 +316,8 @@ module.exports = function (RED) {
                         text: "done"
                     });
                 } else {
-                    node.error(err);
+
+                    node.error("Fail dir queue - do new deploy or restart your application");
                     msg.error = err;
                     node.send(msg);
 
@@ -500,7 +498,7 @@ module.exports = function (RED) {
             }
 
 
-           
+
         });
     }
     RED.nodes.registerType("queue control", SafeQueueControl);
@@ -521,7 +519,7 @@ module.exports = function (RED) {
                     node.config.resetProccess(msg.id);
                     node.config.removeVirtualQueue(msg.id);
                 } else {
-                    console.log("--Error: " + err);
+                    node.error("Fail move the file for dir Done", err);
                 }
             });
 
