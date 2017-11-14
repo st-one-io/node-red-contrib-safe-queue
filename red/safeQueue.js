@@ -36,6 +36,8 @@ module.exports = function (RED) {
 
         this.controlInit = false;
 
+        this.stopProccess = false;
+
         this.homeDir = os.homedir();
 
         this.timeOut = config.timeoutAck;
@@ -58,7 +60,7 @@ module.exports = function (RED) {
             this.storage = new FileSystem(this.path);
         }
 
-        
+
         RED.nodes.createNode(this, config);
 
         this.storage.on('newFile', () => {
@@ -230,6 +232,13 @@ module.exports = function (RED) {
 
             var listNodes = this.listNodeOut;
 
+            if(this.stopProccess){
+                for (var x = 0; x < listNodes.length; x++) {
+                    listNodes[x].setOutStopProccess();
+                }
+            }
+
+
             for (var x = 0; x < listNodes.length; x++) {
                 if (!listNodes[x].getOutInProccess()) {
                     return listNodes[x].id;
@@ -250,26 +259,32 @@ module.exports = function (RED) {
 
             var idNodeOut = node.getNodeOut();
 
-            if (idNodeOut != null) {
+            if (!this.stopProccess) {
 
-                var message = node.getMessageProccess();
+                if (idNodeOut != null) {
 
-                if (message != null) {
+                    var message = node.getMessageProccess();
 
-                    var nodeOut = RED.nodes.getNode(idNodeOut);
+                    if (message != null) {
 
-                    nodeOut.setOutInProccess();
+                        var nodeOut = RED.nodes.getNode(idNodeOut);
 
-                    message.proccess = true;
-                    message.nodeOut = idNodeOut;
+                        nodeOut.setOutInProccess();
 
-                    this.virtualQueue.set(message.key, message);
+                        message.proccess = true;
+                        message.nodeOut = idNodeOut;
 
-                    nodeOut.sendMessage(message.key);
+                        this.virtualQueue.set(message.key, message);
+
+                        nodeOut.sendMessage(message.key);
+                    }
                 }
-            }
+            } 
         }
 
+        node.setStopProccess = function setStopProccess(value) {
+            this.stopProccess = value;
+        }
 
 
         //--> Métodos desatualizados 
@@ -281,8 +296,8 @@ module.exports = function (RED) {
             return this.storage.deleteError();
         }
 
-        node.deleteQueue = function deleteQueue() {
-            return this.storage.deleteQueue();
+        node.deleteQueue = function deleteQueue(callback) {
+            this.storage.deleteQueue(callback);
         }
 
         node.resendErrors = function resendErrors() {
@@ -354,6 +369,15 @@ module.exports = function (RED) {
         node.config = RED.nodes.getNode(values.config);
 
         node.config.registerOut(node);
+
+
+        node.setOutStopProccess = function setOutStopProccess() {
+            node.status({
+                fill: "yellow",
+                shape: "dot",
+                text: "stop proccess"
+            });
+        }
 
 
         node.setOutInProccess = function setOutInProccess() {
@@ -483,7 +507,16 @@ module.exports = function (RED) {
             }
 
             if (operation === 'delete-queue') {
-                msg.payload = node.config.deleteQueue();
+                node.config.deleteQueue(function (err, results) {
+
+                    msg.payload = results;
+                    node.send(msg);
+
+                    if (err) {
+                        node.error("deleteQueue: " + err);
+                    }
+
+                });
             }
 
             if (operation === 'delete-error') {
@@ -499,9 +532,19 @@ module.exports = function (RED) {
             }
 
             if (operation === 'start-proccess') {
+
+                node.config.setStopProccess(false);
+
                 for (var x = 0; x < node.config.getOutNodeRegisters(); x++) {
                     node.config.proccessQueue();
                 }
+                node.send(msg);
+            }
+
+            if (operation === 'stop-proccess') {
+
+                node.config.setStopProccess(true);
+                msg.payload = "Stop Outputs";
                 node.send(msg);
             }
 
