@@ -80,10 +80,17 @@ class FileSystem extends EventEmitter {
 
         var uriQueue = pathLib.join(this.path, queueFolder);
 
-        do {
-        } while (fs.existsSync(uriQueue));
+        do {} while (fs.existsSync(uriQueue));
 
         fs.mkdirSync(uriQueue);
+
+        var stats = fs.statSync(uriQueue);
+
+        if (stats.isDirectory()) {
+            console.log("success to create directory: " + uriQueue);
+        } else {
+            console.log("error to create directory: " + uriQueue + "\n Error: " + err);
+        }
 
         this.createWatch();
 
@@ -190,6 +197,8 @@ class FileSystem extends EventEmitter {
         const uriBase = pathLib.join(this.path, queueFolder);
         const uriQueue = pathLib.join(this.path, queueFolder, obj._msgid + extension);
 
+        var fileSystem = this;
+
         var error = null;
         var results = null;
 
@@ -210,11 +219,12 @@ class FileSystem extends EventEmitter {
 
                 });
             } else {
-               callback(error, results);
+
+                fileSystem.createDirQueue();
+
+                callback(error, results);
             }
         });
-
-
     }
 
     doneMessage(obj, callback) {

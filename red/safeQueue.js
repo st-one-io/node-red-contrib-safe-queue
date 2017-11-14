@@ -17,6 +17,7 @@
 const FileSystem = require('./FileSystem.js');
 const fs = require('fs');
 const pathLib = require('path');
+const os = require('os');
 
 module.exports = function (RED) {
     "use strict";
@@ -35,6 +36,7 @@ module.exports = function (RED) {
 
         this.controlInit = false;
 
+        this.homeDir = os.homedir();
 
         this.timeOut = config.timeoutAck;
 
@@ -46,7 +48,7 @@ module.exports = function (RED) {
         this.path = config.path;
 
         if (this.path.length == 0) {
-            this.path = pathLib.join('.', this.name);
+            this.path = pathLib.join(this.homeDir, this.name);
         }
 
 
@@ -323,7 +325,7 @@ module.exports = function (RED) {
                     });
                 } else {
 
-                    node.error("Fail dir queue - do new deploy or restart your application");
+                    //node.error("Fail dir queue - do new deploy or restart your application");
                     msg.error = err;
                     node.send(msg);
 
