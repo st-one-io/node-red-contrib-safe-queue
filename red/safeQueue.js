@@ -16,7 +16,7 @@
 
 const FileSystem = require('./FileSystem.js');
 const fs = require('fs');
-
+const pathLib = require('path');
 
 module.exports = function (RED) {
     "use strict";
@@ -24,9 +24,8 @@ module.exports = function (RED) {
     // ------------- SafeQueue Config (queue config) ------------
     function SafeQueueConfig(config) {
         var node = this;
-        this.timeOut = config.timeoutAck;
-        var storageMode = config.storage;
-        var path = config.path;
+
+        this.name = config.name;
 
         this.inProccess = new Map();
 
@@ -37,16 +36,27 @@ module.exports = function (RED) {
         this.controlInit = false;
 
 
-        if (storageMode == 'fs') {
+        this.timeOut = config.timeoutAck;
 
-            this.storage = new FileSystem(path);
-
-        } else {
-            if (storageMode == 'bd') {
-
-            }
+        if (this.timeOut.length == 0) {
+            this.timeOut = 1000;
         }
 
+
+        this.path = config.path;
+
+        if (this.path.length == 0) {
+            this.path = pathLib.join('.', this.name);
+        }
+
+
+        this.storageMode = config.storage;
+
+        if (this.storageMode == 'fs') {
+            this.storage = new FileSystem(this.path);
+        }
+
+        
         RED.nodes.createNode(this, config);
 
         this.storage.on('newFile', () => {
@@ -54,9 +64,7 @@ module.exports = function (RED) {
         });
 
 
-
         node.init = function init() {
-
             this.storage.getListFiles(function (err, files) {
                 if (!err) {
                     for (var file of files) {
@@ -64,8 +72,6 @@ module.exports = function (RED) {
                     }
                 }
             });
-
-            //node.proccessQueue();
         }
 
         node.getVirtualQueue = function getVirtualQueue() {

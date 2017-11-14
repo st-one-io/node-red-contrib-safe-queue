@@ -257,8 +257,8 @@
 
 <script type="text/x-red" data-help-name="queue ack">
     <p>SafeQueue Acknowledge</p>
-    <p>Para confirmação do envio da mensagem esse nó precisa receber no msg.id : a chave única de identificação da 
-        mensagem enviada pelo "SafeQueue OUT" no campo msg.id</p>
+    <p>Para confirmação do envio da mensagem esse nó precisa receber no msg.id : a chave única de identificação da mensagem
+        enviada pelo "SafeQueue OUT" no campo msg.id</p>
 </script>
 
 <script type="text/javascript">
@@ -385,10 +385,16 @@
         color: '#a6bbcf',
         defaults: {
             name: {
-                value: ""
+                value: "",
+                required: true,
+                validate: function (text) {
+                    var patt = new RegExp(/[\\/?%*:|\"<>]/);
+                    return !patt.test(text);
+                }
             },
             storage: {
-                value: "fs"
+                value: "fs",
+                required: true
             },
             path: {
                 value: ""
@@ -406,7 +412,8 @@
                 value: ""
             },
             timeoutAck: {
-                value: ""
+                value: "1000",
+                validate: RED.validators.number()
             }
 
         },
@@ -427,8 +434,6 @@
                 self.storage = 'fs'
                 storageMode.val(self.storage);
             }
-
-
             storageMode.change(function () {
                 if (storageMode.val() == "fs") {
                     fsRow.show();
@@ -442,7 +447,6 @@
                 }
             });
             storageMode.change();
-
         }
     });
 </script>
