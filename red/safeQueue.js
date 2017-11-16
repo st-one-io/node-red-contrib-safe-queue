@@ -158,9 +158,6 @@ module.exports = function (RED) {
                             node.error("Fail move the file for dir Error", err);
                         }
                     });
-
-                    return;
-
                 }
             }
 
@@ -232,7 +229,7 @@ module.exports = function (RED) {
 
             var listNodes = this.listNodeOut;
 
-            if(this.stopProccess){
+            if (this.stopProccess) {
                 for (var x = 0; x < listNodes.length; x++) {
                     listNodes[x].setOutStopProccess();
                 }
@@ -279,11 +276,31 @@ module.exports = function (RED) {
                         nodeOut.sendMessage(message.key);
                     }
                 }
-            } 
+            }
         }
 
         node.setStopProccess = function setStopProccess(value) {
             this.stopProccess = value;
+        }
+
+        node.getStopProccess = function getStopProccess() {
+            return this.stopProccess;
+        }
+
+        node.setStatusFreeOut = function setStatusFreeOut() {
+
+            var listNodes = this.listNodeOut;
+
+            for (var x = 0; x < listNodes.length; x++) {
+                listNodes[x].resetOutInProccess();
+            }
+
+        }
+
+        node.clearVirtualQueue = function clearVirtualQueue() {
+            for (var key of this.virtualQueue.keys()) {
+                this.virtualQueue.delete(key);
+            }
         }
 
 
@@ -507,16 +524,26 @@ module.exports = function (RED) {
             }
 
             if (operation === 'delete-queue') {
-                node.config.deleteQueue(function (err, results) {
 
-                    msg.payload = results;
+                if (node.config.getStopProccess()) {
+
+                    node.config.deleteQueue(function (err, results) {
+
+                        msg.payload = results;
+                        node.send(msg);
+
+                        if (err) {
+                            node.error("deleteQueue: " + err);
+                        } else {
+                            //Delete Map VirtualQueue
+                            node.config.clearVirtualQueue();
+                        }
+
+                    });
+                } else {
+                    msg.payload = "Process is not stopped";
                     node.send(msg);
-
-                    if (err) {
-                        node.error("deleteQueue: " + err);
-                    }
-
-                });
+                }
             }
 
             if (operation === 'delete-error') {
@@ -535,6 +562,8 @@ module.exports = function (RED) {
 
                 node.config.setStopProccess(false);
 
+                node.config.setStatusFreeOut();
+
                 for (var x = 0; x < node.config.getOutNodeRegisters(); x++) {
                     node.config.proccessQueue();
                 }
@@ -542,7 +571,6 @@ module.exports = function (RED) {
             }
 
             if (operation === 'stop-proccess') {
-
                 node.config.setStopProccess(true);
                 msg.payload = "Stop Outputs";
                 node.send(msg);

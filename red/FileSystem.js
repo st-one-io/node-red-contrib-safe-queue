@@ -399,6 +399,34 @@ class FileSystem extends EventEmitter {
     }
     //--> GET FILES
 
+    //--> DELETE FILES
+
+    deleteQueue(callback) {
+
+        var url = pathLib.join(this.path, queueFolder);
+
+        var error = null;
+        var results = null;
+
+        fs.readdir(url, 'utf8', function (err, files) {
+
+            error = err;
+
+            if (!err) {
+                for (var file of files) {
+                    var urlFile = pathLib.join(url, file);
+                    fs.unlinkSync(urlFile);
+                }
+
+                callback(error, true);
+            } else {
+                callback(error, false);
+            }
+        });
+    }
+
+    //--> DELETE FILES
+
 
     //--> Métodos desatualizados 
     resendErrors() {
@@ -488,25 +516,7 @@ class FileSystem extends EventEmitter {
 
     }
 
-    deleteQueue() {
 
-        var url = this.path + "/queue/";
-
-        var files = fs.readdirSync(url, 'utf8');
-
-        for (var x = 0; x < files.length; x++) {
-            fs.unlinkSync(url + files[x]);
-        }
-
-        files = fs.readdirSync(url, 'utf8');
-
-        if (files == 0) {
-            return true;
-        } else {
-            return false;
-        }
-
-    }
     //--> Métodos desatualizados 
 
 
