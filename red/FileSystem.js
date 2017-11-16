@@ -140,6 +140,8 @@ class FileSystem extends EventEmitter {
 
                     fs.readdir(newUrl, 'utf8', function (err, files) {
 
+                        error = err;
+
                         if (!err) {
                             cont = cont + files.length;
                             turn++;
@@ -152,6 +154,9 @@ class FileSystem extends EventEmitter {
                         }
                     });
                 }
+
+                callback(error, cont);
+
             }
         });
     }
@@ -185,6 +190,8 @@ class FileSystem extends EventEmitter {
                         }
                     });
                 }
+
+                callback(error, cont);
             }
         });
     }
@@ -458,33 +465,38 @@ class FileSystem extends EventEmitter {
 
     }
 
-    deleteDone() {
+    deleteDone(callback) {
 
-        var url = this.path + "/done/";
+        var url = pathLib.join(this.path, doneFolder);
 
-        var dirs = fs.readdirSync(url, 'utf8');
+        var dirs = null;
+        var error = null;
 
-        for (var i = 0; i < dirs.length; i++) {
 
-            var newUrl = url + dirs[i] + "/";
+        fs.readdir(url, 'utf8', function (err, dirs) {
+            
+            error = err;
 
-            var files = fs.readdirSync(newUrl, 'utf8');
+            if (!err) {
 
-            for (var x = 0; x < files.length; x++) {
-                fs.unlinkSync(newUrl + files[x]);
+                for (var i = 0; i < dirs.length; i++) {
+
+                    var urlDir = pathLib.join(url, dirs[i]);
+
+                    var files = fs.readdirSync(urlDir, 'utf8');
+
+                    for (var x = 0; x < files.length; x++) {
+                        var urlFiles = pathLib.join(urlDir, files[x]);
+                        fs.unlinkSync(urlFiles);
+                    }
+
+                    fs.rmdirSync(urlDir);
+                }
+                callback(error, true);
+            }else{
+                callback(error, false);
             }
-
-            fs.rmdirSync(url + dirs[i]);
-        }
-
-        dirs = fs.readdirSync(url, 'utf8');
-
-        if (dirs == 0) {
-            return true;
-        } else {
-            return false;
-        }
-
+        });
     }
 
     deleteError() {

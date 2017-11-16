@@ -305,8 +305,8 @@ module.exports = function (RED) {
 
 
         //--> Métodos desatualizados 
-        node.deleteDone = function deleteDone() {
-            return this.storage.deleteDone();
+        node.deleteDone = function deleteDone(callback) {
+            this.storage.deleteDone(callback);
         }
 
         node.deleteError = function deleteError() {
@@ -485,8 +485,9 @@ module.exports = function (RED) {
                 node.config.getDoneSize(function (error, results) {
 
                     if (!error) {
-
+                        
                         var size = results;
+
                         node.status({
                             fill: "green",
                             shape: "dot",
@@ -551,7 +552,18 @@ module.exports = function (RED) {
             }
 
             if (operation === 'delete-done') {
-                msg.payload = node.config.deleteDone();
+                
+                node.config.deleteDone(function (err, results){
+                    
+                    msg.payload = results;
+
+                    if(err){
+                       node.error(err); 
+                    }
+                
+                    node.send(msg);
+                });
+
             }
 
             if (operation === 'resend-errors') {
