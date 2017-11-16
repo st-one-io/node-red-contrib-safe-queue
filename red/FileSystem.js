@@ -404,6 +404,43 @@ class FileSystem extends EventEmitter {
             callback(error, listFiles);
         });
     }
+
+    resendErrors(callback) {
+
+        var error = null;
+
+        var urlError = pathLib.join(this.path, errorFolder);
+
+        var urlQueue = pathLib.join(this.path, queueFolder);
+
+        fs.readdir(urlError, 'utf8', function (err, dirs) {
+
+            error = err;
+
+            if (!err) {
+                for (var i = 0; i < dirs.length; i++) {
+
+                    var urlDir = pathLib.join(urlError, dirs[i]);
+
+                    var files = fs.readdirSync(urlDir, 'utf8');
+
+                    for (var x = 0; x < files.length; x++) {
+
+                        var urlFile = pathLib.join(urlDir, files[x]);
+                        var urlNext = pathLib.join(urlQueue, files[x]);
+
+                        fs.renameSync(urlFile, urlNext);
+                    }
+
+                    fs.rmdirSync(urlDir);
+                }
+
+                callback(error, true);
+            } else {
+                callback(error, false);
+            }
+        });
+    }
     //--> GET FILES
 
     //--> DELETE FILES
@@ -497,40 +534,6 @@ class FileSystem extends EventEmitter {
         });
     }
     //--> DELETE FILES
-
-
-    //--> Métodos desatualizados 
-    resendErrors() {
-
-        var url = this.path + "/error/";
-
-        var dirs = fs.readdirSync(url, 'utf8');
-
-        for (var i = 0; i < dirs.length; i++) {
-
-            var newUrl = url + dirs[i] + "/";
-
-            var files = fs.readdirSync(newUrl, 'utf8');
-
-            for (var x = 0; x < files.length; x++) {
-                fs.renameSync(newUrl + files[x], this.path + "/queue/" + files[x]);
-            }
-
-            fs.rmdirSync(url + dirs[i]);
-        }
-
-        dirs = fs.readdirSync(url, 'utf8');
-
-        if (dirs == 0) {
-            return true;
-        } else {
-            return false;
-        }
-
-    }
-    //--> Métodos desatualizados 
-
-
 }
 
 module.exports = FileSystem;

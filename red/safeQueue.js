@@ -317,8 +317,8 @@ module.exports = function (RED) {
             this.storage.deleteQueue(callback);
         }
 
-        node.resendErrors = function resendErrors() {
-            return this.storage.resendErrors();
+        node.resendErrors = function resendErrors(callback) {
+            this.storage.resendErrors(callback);
         }
         //--> Métodos desatualizados 
 
@@ -485,7 +485,7 @@ module.exports = function (RED) {
                 node.config.getDoneSize(function (error, results) {
 
                     if (!error) {
-                        
+
                         var size = results;
 
                         node.status({
@@ -549,35 +549,54 @@ module.exports = function (RED) {
 
             if (operation === 'delete-error') {
 
-                node.config.deleteError(function (err, results){
-                    
+                node.config.deleteError(function (err, results) {
+
                     msg.payload = results;
 
-                    if(err){
-                       node.error(err); 
+                    if (err) {
+                        node.error(err);
                     }
-                
+
                     node.send(msg);
                 });
             }
 
             if (operation === 'delete-done') {
-                
-                node.config.deleteDone(function (err, results){
-                    
+
+                node.config.deleteDone(function (err, results) {
+
                     msg.payload = results;
 
-                    if(err){
-                       node.error(err); 
+                    if (err) {
+                        node.error(err);
                     }
-                
+
                     node.send(msg);
                 });
 
             }
 
             if (operation === 'resend-errors') {
-                msg.payload = node.config.resendErrors();
+
+                if (node.config.getStopProccess()) {
+                    node.config.resendErrors(function (err, results) {
+
+                        msg.payload = results;
+
+                        if (err) {
+                            node.error(err);
+                        } else {
+                            node.config.init();
+                        }
+
+                        node.send(msg);
+                    });
+                } else {
+                    msg.payload = "Process is not stopped";
+                    node.send(msg);
+                }
+
+
             }
 
             if (operation === 'start-proccess') {
