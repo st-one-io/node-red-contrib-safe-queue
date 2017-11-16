@@ -309,8 +309,8 @@ module.exports = function (RED) {
             this.storage.deleteDone(callback);
         }
 
-        node.deleteError = function deleteError() {
-            return this.storage.deleteError();
+        node.deleteError = function deleteError(callback) {
+            this.storage.deleteError(callback);
         }
 
         node.deleteQueue = function deleteQueue(callback) {
@@ -548,7 +548,17 @@ module.exports = function (RED) {
             }
 
             if (operation === 'delete-error') {
-                msg.payload = node.config.deleteError();
+
+                node.config.deleteError(function (err, results){
+                    
+                    msg.payload = results;
+
+                    if(err){
+                       node.error(err); 
+                    }
+                
+                    node.send(msg);
+                });
             }
 
             if (operation === 'delete-done') {

@@ -407,7 +407,6 @@ class FileSystem extends EventEmitter {
     //--> GET FILES
 
     //--> DELETE FILES
-
     deleteQueue(callback) {
 
         var url = pathLib.join(this.path, queueFolder);
@@ -432,6 +431,71 @@ class FileSystem extends EventEmitter {
         });
     }
 
+    deleteDone(callback) {
+
+        var url = pathLib.join(this.path, doneFolder);
+
+        var dirs = null;
+        var error = null;
+
+        fs.readdir(url, 'utf8', function (err, dirs) {
+
+            error = err;
+
+            if (!err) {
+
+                for (var i = 0; i < dirs.length; i++) {
+
+                    var urlDir = pathLib.join(url, dirs[i]);
+
+                    var files = fs.readdirSync(urlDir, 'utf8');
+
+                    for (var x = 0; x < files.length; x++) {
+                        var urlFiles = pathLib.join(urlDir, files[x]);
+                        fs.unlinkSync(urlFiles);
+                    }
+
+                    fs.rmdirSync(urlDir);
+                }
+                callback(error, true);
+            } else {
+                callback(error, false);
+            }
+        });
+    }
+
+    deleteError(callback) {
+
+        var url = pathLib.join(this.path, errorFolder);
+
+        var dirs = null;
+        var error = null;
+
+        fs.readdir(url, 'utf8', function (err, dirs) {
+
+            error = err;
+
+            if (!err) {
+
+                for (var i = 0; i < dirs.length; i++) {
+
+                    var urlDir = pathLib.join(url, dirs[i]);
+
+                    var files = fs.readdirSync(urlDir, 'utf8');
+
+                    for (var x = 0; x < files.length; x++) {
+                        var urlFiles = pathLib.join(urlDir, files[x]);
+                        fs.unlinkSync(urlFiles);
+                    }
+
+                    fs.rmdirSync(urlDir);
+                }
+                callback(error, true);
+            } else {
+                callback(error, false);
+            }
+        });
+    }
     //--> DELETE FILES
 
 
@@ -464,71 +528,6 @@ class FileSystem extends EventEmitter {
         }
 
     }
-
-    deleteDone(callback) {
-
-        var url = pathLib.join(this.path, doneFolder);
-
-        var dirs = null;
-        var error = null;
-
-
-        fs.readdir(url, 'utf8', function (err, dirs) {
-            
-            error = err;
-
-            if (!err) {
-
-                for (var i = 0; i < dirs.length; i++) {
-
-                    var urlDir = pathLib.join(url, dirs[i]);
-
-                    var files = fs.readdirSync(urlDir, 'utf8');
-
-                    for (var x = 0; x < files.length; x++) {
-                        var urlFiles = pathLib.join(urlDir, files[x]);
-                        fs.unlinkSync(urlFiles);
-                    }
-
-                    fs.rmdirSync(urlDir);
-                }
-                callback(error, true);
-            }else{
-                callback(error, false);
-            }
-        });
-    }
-
-    deleteError() {
-
-        var url = this.path + "/error/";
-
-        var dirs = fs.readdirSync(url, 'utf8');
-
-        for (var i = 0; i < dirs.length; i++) {
-
-            var newUrl = url + dirs[i] + "/";
-
-            var files = fs.readdirSync(newUrl, 'utf8');
-
-            for (var x = 0; x < files.length; x++) {
-                fs.unlinkSync(newUrl + files[x]);
-            }
-
-            fs.rmdirSync(url + dirs[i]);
-        }
-
-        dirs = fs.readdirSync(url, 'utf8');
-
-        if (dirs == 0) {
-            return true;
-        } else {
-            return false;
-        }
-
-    }
-
-
     //--> Métodos desatualizados 
 
 
