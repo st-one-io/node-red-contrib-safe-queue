@@ -543,6 +543,7 @@ module.exports = function (RED) {
                     });
                 } else {
                     msg.payload = "Process is not stopped";
+                    node.warn("deleteQueue - Process is not stopped");
                     node.send(msg);
                 }
             }
@@ -593,6 +594,7 @@ module.exports = function (RED) {
                     });
                 } else {
                     msg.payload = "Process is not stopped";
+                    node.warn("resendErrors - Process is not stopped");
                     node.send(msg);
                 }
 
@@ -608,11 +610,13 @@ module.exports = function (RED) {
                 for (var x = 0; x < node.config.getOutNodeRegisters(); x++) {
                     node.config.proccessQueue();
                 }
+                node.log("Start proccess");
                 node.send(msg);
             }
 
             if (operation === 'stop-proccess') {
                 node.config.setStopProccess(true);
+                node.log("Stop Outputs");
                 msg.payload = "Stop Outputs";
                 node.send(msg);
             }
