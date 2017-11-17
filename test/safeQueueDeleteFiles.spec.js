@@ -83,22 +83,26 @@ describe("#SafeQueue Delete Files", () => {
   obj3.payload = "File Data";
 
   it('#Delete Queue', (done) => {
-    fileSystem.saveMessage(obj3, (err, res) => {
+    fileSystem.init((err) => {
       if (!err) {
-        fileSystem.getQueueSize((err, results) => {
+        fileSystem.saveMessage(obj3, (err, res) => {
           if (!err) {
-            if (results > 0) {
-              fileSystem.deleteQueue((err, results) => {
-                if (!err) {
-                  fileSystem.getQueueSize((err, results) => {
+            fileSystem.getQueueSize((err, results) => {
+              if (!err) {
+                if (results > 0) {
+                  fileSystem.deleteQueue((err, results) => {
                     if (!err) {
-                      expect(0).to.equal(results);
-                      done();
+                      fileSystem.getQueueSize((err, results) => {
+                        if (!err) {
+                          expect(0).to.equal(results);
+                          done();
+                        }
+                      });
                     }
                   });
                 }
-              });
-            }
+              }
+            });
           }
         });
       }

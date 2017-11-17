@@ -10,49 +10,86 @@ class FileSystem extends EventEmitter {
 
     constructor(path) {
         super();
+
         this.path = path;
 
         var fileSystem = this;
 
-        var urlBase = pathLib.join(this.path);
-        var uriQueue = pathLib.join(this.path, queueFolder);
-        var uriDone = pathLib.join(this.path, doneFolder);
-        var uriError = pathLib.join(this.path, errorFolder);
+        this.urlBase = pathLib.join(this.path);
+        this.uriQueue = pathLib.join(this.path, queueFolder);
+        this.uriDone = pathLib.join(this.path, doneFolder);
+        this.uriError = pathLib.join(this.path, errorFolder);
+    }
 
+    init(callback) {
 
+        var fileSystem = this;
 
-        if (!fs.existsSync(urlBase)) {
-            fs.mkdir(urlBase, function (err) {
-                if (!err) {
-                    fs.mkdir(uriQueue, function (err) {
-                        if (!err) {
-                            fs.mkdir(uriDone, function (err) {
-                                if (!err) {
-                                    fs.mkdir(uriError, function (err) {
-                                        if (!err) {
-                                            fileSystem.createWatch();
-                                        } else {
-                                            console.log("failure repository: " + uriError + "\n Error: " + err);
-                                        }
-                                    });
-                                } else {
-                                    console.log("failure repository: " + uriDone + "\n Error: " + err);
-                                }
-                            });
-                        } else {
-                            console.log("failure repository: " + uriQueue + "\n Error: " + err);
+        fs.stat(fileSystem.urlBase, (err) => {
+            if (err) {
+                //console.log("Construtor  -> New UrlBase");
+                fs.mkdir(fileSystem.urlBase, function (err) {
+                    //console.log("Construtor  -> Dir UrlBase - ERR: ", err);
+                    if (!err) {
+                        fs.mkdir(fileSystem.uriQueue, function (err) {
+                            //console.log("Construtor  -> Dir UrlQueue - ERR: ", err);
+                            if (!err) {
+                                fs.mkdir(fileSystem.uriDone, function (err) {
+                                    //console.log("Construtor  -> Dir UrlDone - ERR: ", err);
+                                    if (!err) {
+                                        fs.mkdir(fileSystem.uriError, function (err) {
+                                            //console.log("Construtor  -> Dir UrlError - ERR: ", err);
+                                            if (!err) {
+                                                //console.log("chamou");
+                                                fileSystem.createWatch();
+                                                callback(err);
+                                            } else {
+                                                console.log("failure repository: " + fileSystem.uriError + "\n Error: " + err);
+                                                callback(err);
+                                            }
+                                        });
+                                    } else {
+                                        console.log("failure repository: " + fileSystem.uriDone + "\n Error: " + err);
+                                        callback(err);
+                                    }
+                                });
+                            } else {
+                                console.log("failure repository: " + fileSystem.uriQueue + "\n Error: " + err);
+                                callback(err);
+                            }
+                        });
+                    } else {
+                        console.log("failure repository: " + fileSystem.urlBase + "\n Error: " + err);
+                        callback(err);
+                    }
+                });
+            } else {
+                fs.stat(fileSystem.uriQueue, (err, stats) => {
+                    if (err) {
+                        fs.mkdir(fileSystem.uriQueue, (err) => {
+                            if (!err) {
+                                fileSystem.createWatch();
+                                callback(err);
+                            }
+                        });
+                    } else {
+                        if (stats.isDirectory()) {
+                            fileSystem.createWatch();
+                            callback(err);
                         }
-                    });
-                } else {
-                    console.log("failure repository: " + urlBase + "\n Error: " + err);
-                }
-            });
-        }
+                    }
+                });
+
+            }
+        });
+
     }
 
     createWatch() {
 
-        // console.log("Create Watch");
+        //console.log("Create Watch");
+
+        this.watch = true;
 
         var uriQueue = pathLib.join(this.path, queueFolder);
 
@@ -61,8 +98,8 @@ class FileSystem extends EventEmitter {
         this.watcher = fs.watch(uriQueue, (eventType, fileName) => this.onChange(eventType, fileName));
 
         this.watcher.on('error', function (e) {
-            // console.log("Watch Error");
-            this.watcher.close();
+            //console.log("Watch Error");
+            fileSystem.close();
             fileSystem.createDirQueue();
         });
     }
@@ -80,9 +117,9 @@ class FileSystem extends EventEmitter {
         var stats = fs.statSync(uriQueue);
 
         if (stats.isDirectory()) {
-            console.log("success to create directory: " + uriQueue);
+           // console.log("success to create directory: " + uriQueue);
         } else {
-            console.log("error to create directory: " + uriQueue + "\n Error: " + err);
+           // console.log("error to create directory: " + uriQueue + "\n Error: " + err);
         }
 
         this.createWatch();

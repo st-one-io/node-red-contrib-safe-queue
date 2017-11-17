@@ -69,12 +69,14 @@ module.exports = function (RED) {
 
 
         node.init = function init() {
-            this.storage.getListFiles(function (err, files) {
-                if (!err) {
-                    for (var file of files) {
-                        node.addVirtualQueue(file);
+            this.storage.init((err) => {
+                this.storage.getListFiles(function (err, files) {
+                    if (!err) {
+                        for (var file of files) {
+                            node.addVirtualQueue(file);
+                        }
                     }
-                }
+                });
             });
         }
 

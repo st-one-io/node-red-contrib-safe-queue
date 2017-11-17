@@ -84,16 +84,20 @@ describe("#SafeQueue Files Check", () => {
 
   it('#Get file list', (done) => {
 
-    fileSystem.saveMessage(obj1, (err, res) => {
+    fileSystem.init((err) => {
       if (!err) {
-        fileSystem.saveMessage(obj2, (err, res) => {
+        fileSystem.saveMessage(obj1, (err, res) => {
           if (!err) {
-            fileSystem.saveMessage(obj3, (err, res) => {
+            fileSystem.saveMessage(obj2, (err, res) => {
               if (!err) {
-                fileSystem.getListFiles((err, res) => {
+                fileSystem.saveMessage(obj3, (err, res) => {
                   if (!err) {
-                    expect(3).to.equal(res.length);
-                    done();
+                    fileSystem.getListFiles((err, res) => {
+                      if (!err) {
+                        expect(3).to.equal(res.length);
+                        done();
+                      }
+                    });
                   }
                 });
               }
@@ -102,6 +106,7 @@ describe("#SafeQueue Files Check", () => {
         });
       }
     });
+
   });
 
   it('#Resend Errors', (done) => {

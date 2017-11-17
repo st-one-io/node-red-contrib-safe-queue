@@ -71,14 +71,16 @@ describe("#SafeQueue Directory Check", () => {
 
   it('#Check dir base', (done) => {
 
-    fs.stat(pathBase, function (err, stats) {
-
-      var isDirectory = stats.isDirectory();
-
-      expect(true).is.equal(isDirectory);
-
-      done();
-
+    fileSystem.init((err) => {
+      if (!err) {
+        fs.stat(pathBase, function (err, stats) {
+          if (!err) {
+            var isDirectory = stats.isDirectory();
+            expect(true).is.equal(isDirectory);
+            done();
+          }
+        });
+      }
     });
 
   });

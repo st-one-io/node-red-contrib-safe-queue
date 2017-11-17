@@ -62,63 +62,32 @@ function destroyerDirBase(callback) {
 }
 
 var pathBase = getDirBase();
-var fileSystem = new FileSystem(pathBase);
+var fileSystem = new FileSystem(pathBase);;
 var dirQueue = path.join(pathBase, 'queue');
 var dirError = path.join(pathBase, 'error');
 var dirDone = path.join(pathBase, 'done');
 
-describe("#SafeQueue create and move files", () => {
+describe("#SafeQueue Watch Check", () => {
 
-  var obj = {};
-  obj._msgid = "123456";
-  obj.payload = "File Data";
-
-  it('#Create file', (done) => {
+  it('#Delete dir queue', (done) => {
 
     fileSystem.init((err) => {
-      if(!err){
-        fileSystem.saveMessage(obj, function (err, results) {
-          if (!err) {
-            if (results) {
-              fileSystem.getMessage(obj._msgid, function (err, results) {
-                if (!err) {
-                  expect(obj.payload).to.equal(results);
-                  done();
-                }
-              });
-            }
-          }
-        });
-      }
-    });
-
-  });
-
-  it('#Move for Done', (done) => {
-
-    fileSystem.doneMessage(obj._msgid, function (err, results) {
       if (!err) {
-        expect(true).to.equal(results);
-        done();
-      }
-    });
-
-  });
-
-  it('#Move for Error', (done) => {
-
-    var msg = {};
-    msg._msgid = "654321";
-    msg.payload = "File Data";
-
-    fileSystem.saveMessage(msg, function (err, results) {
-      if (!err) {
-        fileSystem.errorMessage(msg._msgid, function (err, results) {
+        fs.rmdir(dirQueue, (err) => {
           if (!err) {
-            expect(true).to.equal(results);
             done();
           }
         });
+      }
+    });
+  });
+
+  it('#Check dir queue', (done) => {
+
+    fs.stat(dirQueue, (err, stats) => {
+      if(!err){
+        expect(true).to.equal(stats.isDirectory());
+        done();
       }
     });
   });
@@ -132,6 +101,5 @@ describe("#SafeQueue create and move files", () => {
     });
 
   });
-
 
 });

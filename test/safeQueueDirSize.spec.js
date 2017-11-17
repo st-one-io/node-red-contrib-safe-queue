@@ -84,12 +84,16 @@ describe("#SafeQueue Directory Size", () => {
 
   it('#Queue size', (done) => {
 
-    fileSystem.saveMessage(obj3, (err, results) => {
+    fileSystem.init((err) => {
       if (!err) {
-        fileSystem.getQueueSize(function (err, results) {
+        fileSystem.saveMessage(obj3, (err, results) => {
           if (!err) {
-            expect(1).to.equal(results);
-            done();
+            fileSystem.getQueueSize(function (err, results) {
+              if (!err) {
+                expect(1).to.equal(results);
+                done();
+              }
+            });
           }
         });
       }
