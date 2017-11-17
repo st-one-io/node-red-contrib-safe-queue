@@ -19,5 +19,11 @@
     "nodes": {
       "safeQueue": "red/safeQueue.js"
     }
+  },
+  "devDependencies": {
+    "mocha": "^4.0.1"
+  },
+  "dependencies": {
+    "chai": "^4.1.2"
   }
 }

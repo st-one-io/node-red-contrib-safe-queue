@@ -12,71 +12,64 @@ class FileSystem extends EventEmitter {
         super();
         this.path = path;
 
+        var fileSystem = this;
+
         var urlBase = pathLib.join(this.path);
         var uriQueue = pathLib.join(this.path, queueFolder);
         var uriDone = pathLib.join(this.path, doneFolder);
         var uriError = pathLib.join(this.path, errorFolder);
 
+
+
         if (!fs.existsSync(urlBase)) {
             fs.mkdir(urlBase, function (err) {
                 if (!err) {
-                    console.log("create repository: " + urlBase);
+                    fs.mkdir(uriQueue, function (err) {
+                        if (!err) {
+                            fs.mkdir(uriDone, function (err) {
+                                if (!err) {
+                                    fs.mkdir(uriError, function (err) {
+                                        if (!err) {
+                                            fileSystem.createWatch();
+                                        } else {
+                                            console.log("failure repository: " + uriError + "\n Error: " + err);
+                                        }
+                                    });
+                                } else {
+                                    console.log("failure repository: " + uriDone + "\n Error: " + err);
+                                }
+                            });
+                        } else {
+                            console.log("failure repository: " + uriQueue + "\n Error: " + err);
+                        }
+                    });
                 } else {
                     console.log("failure repository: " + urlBase + "\n Error: " + err);
                 }
             });
         }
-
-        if (!fs.existsSync(uriQueue)) {
-            fs.mkdir(uriQueue, function (err) {
-                if (!err) {
-                    console.log("create repository: " + uriQueue);
-                } else {
-                    console.log("failure repository: " + uriQueue + "\n Error: " + err);
-                }
-            });
-        }
-
-        if (!fs.existsSync(uriDone)) {
-            fs.mkdir(uriDone, function (err) {
-                if (!err) {
-                    console.log("create repository: " + uriDone);
-                } else {
-                    console.log("failure repository: " + uriDone + "\n Error: " + err);
-                }
-            });
-        }
-
-        if (!fs.existsSync(uriError)) {
-            fs.mkdir(uriError, function (err) {
-                if (!err) {
-                    console.log("create repository: " + uriError);
-                } else {
-                    console.log("failure repository: " + uriError + "\n Error: " + err);
-                }
-            });
-        }
-
-        this.createWatch();
-
-        console.log("FileSystem - path: " + urlBase);
     }
 
     createWatch() {
+
+        // console.log("Create Watch");
 
         var uriQueue = pathLib.join(this.path, queueFolder);
 
         var fileSystem = this;
 
-        var watcher = fs.watch(uriQueue, (eventType, fileName) => this.onChange(eventType, fileName));
+        this.watcher = fs.watch(uriQueue, (eventType, fileName) => this.onChange(eventType, fileName));
 
-        watcher.on('error', function (e) {
-            watcher.close();
+        this.watcher.on('error', function (e) {
+            // console.log("Watch Error");
+            this.watcher.close();
             fileSystem.createDirQueue();
         });
     }
 
     createDirQueue() {
+
+        //console.log("Create Dir Queue");
 
         var uriQueue = pathLib.join(this.path, queueFolder);
 
@@ -94,6 +87,11 @@ class FileSystem extends EventEmitter {
 
         this.createWatch();
 
+    }
+
+    close() {
+        //console.log("Close Watch");
+        this.watcher.close();
     }
 
     onChange(eventType, fileName) {
@@ -125,7 +123,6 @@ class FileSystem extends EventEmitter {
 
     getDoneSize(callback) {
         const url = pathLib.join(this.path, doneFolder);
-
         var cont = 0;
         var error = null;
         var turn = 0;
@@ -133,30 +130,32 @@ class FileSystem extends EventEmitter {
         fs.readdir(url, 'utf8', function (err, dirs) {
 
             if (!err) {
+                if (dirs.length > 0) {
+                    for (let x = 0; x < dirs.length; x++) {
 
-                for (let x = 0; x < dirs.length; x++) {
+                        var newUrl = pathLib.join(url, dirs[x]);
 
-                    var newUrl = pathLib.join(url, dirs[x]);
+                        fs.readdir(newUrl, 'utf8', function (err, files) {
 
-                    fs.readdir(newUrl, 'utf8', function (err, files) {
+                            error = err;
 
-                        error = err;
+                            if (!err) {
+                                cont = cont + files.length;
+                                turn++;
+                                if (turn == dirs.length) {
+                                    callback(error, cont);
+                                }
 
-                        if (!err) {
-                            cont = cont + files.length;
-                            turn++;
-                            if (turn == dirs.length) {
+                            } else {
                                 callback(error, cont);
                             }
-
-                        } else {
-                            console.log(err);
-                        }
-                    });
+                        });
+                    }
+                } else {
+                    callback(error, cont);
                 }
-
+            } else {
                 callback(error, cont);
-
             }
         });
     }
@@ -172,25 +171,29 @@ class FileSystem extends EventEmitter {
 
             if (!err) {
 
-                for (let x = 0; x < dirs.length; x++) {
+                if (dirs.length > 0) {
+                    for (let x = 0; x < dirs.length; x++) {
 
-                    var newUrl = pathLib.join(url, dirs[x]);
+                        var newUrl = pathLib.join(url, dirs[x]);
 
-                    fs.readdir(newUrl, 'utf8', function (err, files) {
+                        fs.readdir(newUrl, 'utf8', function (err, files) {
 
-                        if (!err) {
-                            cont = cont + files.length;
-                            turn++;
-                            if (turn == dirs.length) {
+                            if (!err) {
+                                cont = cont + files.length;
+                                turn++;
+                                if (turn == dirs.length) {
+                                    callback(error, cont);
+                                }
+
+                            } else {
                                 callback(error, cont);
                             }
-
-                        } else {
-                            console.log(err);
-                        }
-                    });
+                        });
+                    }
+                } else {
+                    callback(error, cont);
                 }
-
+            } else {
                 callback(error, cont);
             }
         });
@@ -276,7 +279,7 @@ class FileSystem extends EventEmitter {
 
                     if (!err) {
 
-                        console.log("\n --> doneMessage - Create repository: " + baseNewUri);
+                        // console.log("\n --> doneMessage - Create repository: " + baseNewUri);
 
                         fs.rename(uri, newUri, function (err) {
                             error = err;
@@ -338,7 +341,7 @@ class FileSystem extends EventEmitter {
 
                     if (!err) {
 
-                        console.log("\n --> errorMessage - Create repository: " + baseNewUri);
+                        // console.log("\n --> errorMessage - Create repository: " + baseNewUri);
 
                         fs.rename(uri, newUri, function (err) {
                             error = err;
@@ -456,6 +459,7 @@ class FileSystem extends EventEmitter {
             error = err;
 
             if (!err) {
+
                 for (var file of files) {
                     var urlFile = pathLib.join(url, file);
                     fs.unlinkSync(urlFile);
