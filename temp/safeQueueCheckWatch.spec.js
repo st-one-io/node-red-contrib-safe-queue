@@ -69,6 +69,10 @@ var dirDone = path.join(pathBase, 'done');
 
 describe("#SafeQueue Watch Check", () => {
 
+  var obj1 = {};
+  obj1._msgid = "123456";
+  obj1.payload = "File Data";
+  
   it('#Delete dir queue', (done) => {
 
     fileSystem.init((err) => {
