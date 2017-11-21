@@ -17,6 +17,7 @@
 <!-- ------------- SafeQueue In (queue in) ---------------------- -->
 
 <script type="text/x-red" data-template-name="queue in">
+
     <div class="form-row">
         <label for="node-input-name">
             <i class="fa fa-tag"></i>
@@ -54,8 +55,20 @@
         inputs: 1,
         outputs: 1,
         icon: "file.png",
+        paletteLabel : "queue in",
         label: function () {
-            return this.name || this._("safe-queue.in.define.name");
+
+            if (this.name) {
+                return this.name;
+            } else {
+
+                var defaultName = this._("safe-queue.in.define.name")
+                var selectConfig = RED.nodes.node(this.config);
+
+                var newName = defaultName + " / " + selectConfig.label();
+
+                return newName;
+            }
         },
         oneditprepare: function () {
             var self = this;
@@ -118,8 +131,20 @@
         inputs: 1,
         outputs: 1,
         icon: "file.png",
+        paletteLabel: "queue out",
         label: function () {
-            return this.name || this._("safe-queue.out.define.name");
+
+            if (this.name) {
+                return this.name;
+            } else {
+
+                var defaultName = this._("safe-queue.out.define.name")
+                var selectConfig = RED.nodes.node(this.config);
+
+                var newName = defaultName + " / " + selectConfig.label();
+
+                return newName;
+            }
         },
         oneditprepare: function () {
             var self = this;
@@ -202,6 +227,7 @@
         inputs: 1,
         outputs: 1,
         icon: "debug.png",
+        paletteLabel: "queue control",
         label: function () {
 
             if (this.name) {
@@ -238,11 +264,11 @@
 <script type="text/x-red" data-template-name="queue ack">
 
     <div class="form-row" id="node-ack-name">
-        <label for="node-config-input-name">
+        <label for="node-input-name">
             <i class="fa fa-tag"></i>
             <span data-i18n="safe-queue.label.name"></span>
         </label>
-        <input type="text" id="node-config-input-name" data-i18n="[placeholder]safe-queue.label.name">
+        <input type="text" id="node-input-name" data-i18n="[placeholder]safe-queue.label.name">
     </div>
 
     <div class="form-row" id="node-ack-config">
@@ -276,6 +302,7 @@
         },
         inputs: 1,
         icon: "alert.png",
+        paletteLabel: "queue ack",
         label: function () {
             return this.name || this._("safe-queue.ack.define.name");
         },
