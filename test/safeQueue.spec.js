@@ -166,7 +166,7 @@ describe('#SafeQueue', () => {
     //--> Diretorios
     it('#Diretorios', (done) => {
         let pathBase = getDirBase();
-        let fileSystem = new FileSystem(pathBase);
+        let fileSystem = new FileSystem({'path': pathBase});
         let dirQueue = path.join(pathBase, 'queue');
         let dirError = path.join(pathBase, 'error');
         let dirDone = path.join(pathBase, 'done');
@@ -206,7 +206,7 @@ describe('#SafeQueue', () => {
     //--> Salvar Arquivos
     it('#Salvar arquivo e verificar integridade', (done) => {
         let pathBase = getDirBase();
-        let fileSystem = new FileSystem(pathBase);
+        let fileSystem = new FileSystem({'path': pathBase});
 
         var obj = {};
         obj._msgid = "123456";
@@ -248,7 +248,7 @@ describe('#SafeQueue', () => {
 
     it('#Excluir pasta queue, salvar arquivo e verificar integridade', (done) => {
         let pathBase = getDirBase();
-        let fileSystem = new FileSystem(pathBase);
+        let fileSystem = new FileSystem({'path': pathBase});
         let dirQueue = path.join(pathBase, 'queue');
 
         var obj = {};
@@ -283,7 +283,7 @@ describe('#SafeQueue', () => {
 
     it('#Excluir pasta base, salvar arquivo e verificar integridade', (done) => {
         let pathBase = getDirBase();
-        let fileSystem = new FileSystem(pathBase);
+        let fileSystem = new FileSystem({'path': pathBase});
         let dirQueue = path.join(pathBase, 'queue');
 
         var obj = {};
@@ -321,7 +321,7 @@ describe('#SafeQueue', () => {
 
     /*it('#Salvar dois arquivos com mesmo nome', (done) => {
         let pathBase = getDirBase();
-        let fileSystem = new FileSystem(pathBase);
+        let fileSystem = new FileSystem({'path': pathBase});
 
         var obj = {};
         obj._msgid = "123456";
@@ -353,7 +353,7 @@ describe('#SafeQueue', () => {
     //--> Movimentação de Arquivos
     it('#Mover arquivo para error', (done) => {
         let pathBase = getDirBase();
-        let fileSystem = new FileSystem(pathBase);
+        let fileSystem = new FileSystem({'path': pathBase});
 
         var obj = {};
         obj._msgid = "123456";
@@ -395,7 +395,7 @@ describe('#SafeQueue', () => {
 
     it('#Mover arquivo para done', (done) => {
         let pathBase = getDirBase();
-        let fileSystem = new FileSystem(pathBase);
+        let fileSystem = new FileSystem({'path': pathBase});
 
         var obj = {};
         obj._msgid = "123456";
@@ -439,7 +439,7 @@ describe('#SafeQueue', () => {
 
     it('#Excluir pasta error e mover arquivo para error', (done) => {
         let pathBase = getDirBase();
-        let fileSystem = new FileSystem(pathBase);
+        let fileSystem = new FileSystem({'path': pathBase});
         let dirError = path.join(pathBase, 'error');
 
         var obj = {};
@@ -476,7 +476,7 @@ describe('#SafeQueue', () => {
 
     it('#Excluir pasta done e mover arquivo para done', (done) => {
         let pathBase = getDirBase();
-        let fileSystem = new FileSystem(pathBase);
+        let fileSystem = new FileSystem({'path': pathBase});
         let dirDone = path.join(pathBase, 'done');
 
         var obj = {};
@@ -510,13 +510,14 @@ describe('#SafeQueue', () => {
             }
         });
     });
+
     //--> Movimentação de Arquivos
 
 
     //-->Delete Arquivos
     it('#Salvar e excluir arquvos da pasta queue', (done) => {
         let pathBase = getDirBase();
-        let fileSystem = new FileSystem(pathBase);
+        let fileSystem = new FileSystem({'path': pathBase});
 
         var obj = {};
         obj._msgid = "123456";
@@ -561,7 +562,7 @@ describe('#SafeQueue', () => {
 
     it('#Mover e excluir arquivos da pasta error', (done) => {
         let pathBase = getDirBase();
-        let fileSystem = new FileSystem(pathBase);
+        let fileSystem = new FileSystem({'path': pathBase});
 
         var obj = {};
         obj._msgid = "123456";
@@ -612,7 +613,7 @@ describe('#SafeQueue', () => {
 
     it('#Mover e excliur arquivos da pasta done', (done) => {
         let pathBase = getDirBase();
-        let fileSystem = new FileSystem(pathBase);
+        let fileSystem = new FileSystem({'path': pathBase});
 
         var obj = {};
         obj._msgid = "123456";
@@ -668,7 +669,7 @@ describe('#SafeQueue', () => {
     //-->Get Files
     it('#Buscar lista de arquivos', (done) => {
         let pathBase = getDirBase();
-        let fileSystem = new FileSystem(pathBase);
+        let fileSystem = new FileSystem({'path': pathBase});
 
         var teste = this;
 
@@ -707,7 +708,7 @@ describe('#SafeQueue', () => {
 
     it('#Reenviar arquivos que estão na pasta error', (done) => {
         let pathBase = getDirBase();
-        let fileSystem = new FileSystem(pathBase);
+        let fileSystem = new FileSystem({'path': pathBase});
 
         var teste = this;
 
