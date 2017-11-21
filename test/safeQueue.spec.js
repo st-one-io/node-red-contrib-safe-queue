@@ -203,6 +203,7 @@ describe('#SafeQueue', () => {
     });
     //--> Diretorios
 
+
     //--> Salvar Arquivos
     it('#Salvar arquivo e verificar integridade', (done) => {
         let pathBase = getDirBase();
@@ -223,7 +224,10 @@ describe('#SafeQueue', () => {
                                     if (!err) {
                                         expect(data).to.be.deep.equal({'_msgid': "123456", 'payload': "File Data1"});
                                         fileSystem.getMessage(teste.obj2._msgid, (err, data) => {
-                                            expect(data).to.be.deep.equal({'_msgid': "654321", 'payload': "File Data2"});
+                                            expect(data).to.be.deep.equal({
+                                                '_msgid': "654321",
+                                                'payload': "File Data2"
+                                            });
                                             if (!err) {
                                                 fileSystem.getQueueSize((err, res) => {
                                                     if (!err) {
@@ -254,7 +258,7 @@ describe('#SafeQueue', () => {
 
         var teste = this;
 
-        teste.obj = {'_msgid': "123456", 'payload' : "File Data"};
+        teste.obj = {'_msgid': "123456", 'payload': "File Data"};
 
         fileSystem.init((err) => {
             if (!err) {
@@ -266,7 +270,7 @@ describe('#SafeQueue', () => {
                             if (!err) {
                                 fileSystem.getMessage(teste.obj._msgid, (err, data) => {
                                     if (!err) {
-                                        expect(data).to.be.deep.equal({'_msgid': "123456", 'payload' : "File Data"});
+                                        expect(data).to.be.deep.equal({'_msgid': "123456", 'payload': "File Data"});
                                         destroyerDirBase(fileSystem, pathBase, (err) => {
                                             if (!err) {
                                                 done();
@@ -289,7 +293,7 @@ describe('#SafeQueue', () => {
 
         var teste = this;
 
-        teste.obj = {'_msgid': "123456", 'payload' : "File Data"};
+        teste.obj = {'_msgid': "123456", 'payload': "File Data"};
 
         fileSystem.init((err) => {
             // console.log("File System Err: ", err);
@@ -303,7 +307,7 @@ describe('#SafeQueue', () => {
                                 fileSystem.getMessage(teste.obj._msgid, (err, data) => {
                                     // console.log("Get Message Err: ", err);
                                     if (!err) {
-                                        expect(data).to.be.deep.equal({'_msgid': "123456", 'payload' : "File Data"});
+                                        expect(data).to.be.deep.equal({'_msgid': "123456", 'payload': "File Data"});
                                         destroyerDirBase(fileSystem, pathBase, (err) => {
                                             // console.log("Final Destroyer Err: ", err);
                                             if (!err) {
@@ -749,4 +753,181 @@ describe('#SafeQueue', () => {
         });
     });
     //-->Get Files
+
+
+    //-->Ações externas
+    it('#Adição externa de arquivo .json e verificar integridade', (done) => {
+        let pathBase = getDirBase();
+        let fileSystem = new FileSystem({'path': pathBase});
+        let dirQueue = path.join(pathBase, 'queue');
+        let dirFile = path.join(dirQueue, 'file.json');
+
+        var teste = this;
+        teste.obj1 = {'_msgid': "123456", 'payload': "File Data 1"};
+
+        fileSystem.init((err) => {
+            if (!err) {
+                fs.writeFile(dirFile, JSON.stringify(teste.obj1), (err) => {
+                    if (!err) {
+                        fileSystem.getQueueSize((err, res) => {
+                            if (!err) {
+                                expect(1).to.equal(res);
+                                fileSystem.getMessage('file', (err, data) => {
+                                    if (!err) {
+                                        expect(data).to.be.deep.equal({'_msgid': "123456", 'payload': "File Data 1"});
+                                        fileSystem.getListFiles((err, res) => {
+
+                                            var compare = ['file'];
+                                            expect(compare).to.deep.equal(res);
+                                            destroyerDirBase(fileSystem, pathBase, (err) => {
+                                                if (!err) {
+                                                    done();
+                                                }
+                                            });
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });
+
+    it('#Adição externa de arquivo .txt', (done) => {
+        let pathBase = getDirBase();
+        let fileSystem = new FileSystem({'path': pathBase});
+        let dirQueue = path.join(pathBase, 'queue');
+        let dirFile = path.join(dirQueue, 'file.txt');
+
+        var teste = this;
+        teste.obj1 = {'_msgid': "123456", 'payload': "File Data 1"};
+
+        fileSystem.init((err) => {
+            if (!err) {
+                fs.writeFile(dirFile, JSON.stringify(teste.obj1), (err) => {
+                    if (!err) {
+                        fileSystem.getListFiles((err, res) => {
+                            if (!err) {
+                                var compare = [];
+                                expect(compare).to.deep.equal(res);
+                                fileSystem.getErrorSize((err, res) => {
+                                    if (!err) {
+                                        expect(1).to.equal(res);
+                                        destroyerDirBase(fileSystem, pathBase, (err) => {
+                                            if (!err) {
+                                                done();
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });
+
+    it('#Adição externa de arquivo .json e mover para error', (done) => {
+        let pathBase = getDirBase();
+        let fileSystem = new FileSystem({'path': pathBase});
+        let dirQueue = path.join(pathBase, 'queue');
+        let dirFile = path.join(dirQueue, 'file.json');
+
+        var teste = this;
+        teste.obj1 = {'_msgid': "123456", 'payload': "File Data 1"};
+
+        fileSystem.init((err) => {
+            if (!err) {
+                fs.writeFile(dirFile, JSON.stringify(teste.obj1), (err) => {
+                    if (!err) {
+                        fileSystem.getQueueSize((err, res) => {
+                            if (!err) {
+                                expect(1).to.equal(res);
+                                fileSystem.getMessage('file', (err, data) => {
+                                    if (!err) {
+                                        expect(data).to.be.deep.equal({'_msgid': "123456", 'payload': "File Data 1"});
+                                        fileSystem.getListFiles((err, res) => {
+
+                                            var compare = ['file'];
+                                            expect(compare).to.deep.equal(res);
+
+                                            fileSystem.errorMessage('file', (err) => {
+                                                if (!err) {
+                                                    fileSystem.getErrorSize((err, res) => {
+                                                        if (!err) {
+                                                            expect(1).to.equal(res);
+                                                            destroyerDirBase(fileSystem, pathBase, (err) => {
+                                                                if (!err) {
+                                                                    done();
+                                                                }
+                                                            });
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });
+
+    it('#Adição externa de arquivo .json e mover para done', (done) => {
+        let pathBase = getDirBase();
+        let fileSystem = new FileSystem({'path': pathBase});
+        let dirQueue = path.join(pathBase, 'queue');
+        let dirFile = path.join(dirQueue, 'file.json');
+
+        var teste = this;
+        teste.obj1 = {'_msgid': "123456", 'payload': "File Data 1"};
+
+        fileSystem.init((err) => {
+            if (!err) {
+                fs.writeFile(dirFile, JSON.stringify(teste.obj1), (err) => {
+                    if (!err) {
+                        fileSystem.getQueueSize((err, res) => {
+                            if (!err) {
+                                expect(1).to.equal(res);
+                                fileSystem.getMessage('file', (err, data) => {
+                                    if (!err) {
+                                        expect(data).to.be.deep.equal({'_msgid': "123456", 'payload': "File Data 1"});
+                                        fileSystem.getListFiles((err, res) => {
+
+                                            var compare = ['file'];
+                                            expect(compare).to.deep.equal(res);
+
+                                            fileSystem.doneMessage('file', (err) => {
+                                                if (!err) {
+                                                    fileSystem.getDoneSize((err, res) => {
+                                                        if (!err) {
+                                                            expect(1).to.equal(res);
+                                                            destroyerDirBase(fileSystem, pathBase, (err) => {
+                                                                if (!err) {
+                                                                    done();
+                                                                }
+                                                            });
+                                                        }
+                                                    });
+                                                }
+                                            });
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });
+    //-->Ações externas
+
+
 });
