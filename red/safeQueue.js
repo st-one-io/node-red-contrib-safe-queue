@@ -15,9 +15,6 @@
 */
 
 const FileSystem = require('./FileSystem.js');
-const fs = require('fs');
-const pathLib = require('path');
-const os = require('os');
 
 module.exports = function (RED) {
     "use strict";
@@ -38,26 +35,20 @@ module.exports = function (RED) {
 
         this.stopProccess = false;
 
-        this.homeDir = os.homedir();
-
         this.timeOut = config.timeoutAck;
 
         if (this.timeOut.length == 0) {
             this.timeOut = 1000;
         }
 
-
-        this.path = config.path;
-
-        if (this.path.length == 0) {
-            this.path = pathLib.join(this.homeDir, this.name);
-        }
-
+        let path = null || config.path;
 
         this.storageMode = config.storage;
 
+        let infoPath = {'path':path, 'queueName': this.name};
+
         if (this.storageMode == 'fs') {
-            this.storage = new FileSystem(this.path);
+            this.storage = new FileSystem(infoPath);
         }
 
 

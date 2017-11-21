@@ -1,4 +1,5 @@
 const fs = require('fs');
+const os = require('os');
 const pathLib = require('path');
 const EventEmitter = require('events');
 const queueFolder = "queue";
@@ -6,12 +7,20 @@ const doneFolder = "done";
 const errorFolder = "error";
 const extension = ".json";
 
+
 class FileSystem extends EventEmitter {
 
-    constructor(path) {
+    constructor(obj) {
         super();
 
-        this.path = path;
+        this.path = obj.path;
+
+        let queueName = obj.queueName;
+        let homeDir = os.homedir();
+
+        if (this.path.length == 0) {
+            this.path = pathLib.join(homeDir, queueName);
+        }
 
         var fileSystem = this;
 
@@ -317,7 +326,6 @@ class FileSystem extends EventEmitter {
                                 callback(err, false);
                             }
                         });
-
                     }
                 });
             } else {
