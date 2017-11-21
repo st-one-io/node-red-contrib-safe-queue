@@ -705,5 +705,63 @@ describe('#SafeQueue', () => {
         });
     });
 
+    it('#Reenviar arquivos que estão na pasta error', (done) => {
+        let pathBase = getDirBase();
+        let fileSystem = new FileSystem(pathBase);
+
+        var teste = this;
+
+        teste.obj1 = {'_msgid': "123456", 'payload': "File Data1"};
+        teste.obj2 = {'_msgid': "654321", 'payload': "File Data2"};
+        teste.obj3 = {'_msgid': "987654", 'payload': "File Data3"};
+
+        fileSystem.init((err) => {
+            if (!err) {
+                fileSystem.saveMessage(teste.obj1, (err, res) => {
+                    if (!err) {
+                        fileSystem.saveMessage(teste.obj2, (err, res) => {
+                            if (!err) {
+                                fileSystem.saveMessage(teste.obj3, (err, res) => {
+                                    if (!err) {
+                                        fileSystem.errorMessage(teste.obj1._msgid, (err, res) => {
+                                            if (!err) {
+                                                fileSystem.errorMessage(teste.obj2._msgid, (err, res) => {
+                                                    if (!err) {
+                                                        fileSystem.errorMessage(teste.obj3._msgid, (err, res) => {
+                                                            if (!err) {
+                                                                fileSystem.getErrorSize((err, res) => {
+                                                                    if (!err) {
+                                                                        expect(3).to.equal(res);
+                                                                        fileSystem.resendErrors((err, res) => {
+                                                                            if (!err) {
+                                                                                fileSystem.getQueueSize((err, res) => {
+                                                                                    if (!err) {
+                                                                                        expect(3).to.equal(res);
+                                                                                        destroyerDirBase(fileSystem, pathBase, (err) => {
+                                                                                            if (!err) {
+                                                                                                done();
+                                                                                            }
+                                                                                        });
+                                                                                    }
+                                                                                });
+                                                                            }
+                                                                        });
+                                                                    }
+                                                                });
+                                                            }
+                                                        });
+                                                    }
+                                                });
+                                            }
+                                        });
+                                    }
+                                });
+                            }
+                        });
+                    }
+                });
+            }
+        });
+    });
     //-->Get Files
 });
