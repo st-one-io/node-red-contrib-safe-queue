@@ -15,6 +15,7 @@
   "bugs": {
     "url": "https://github.com/netsmarttech/node-red-contrib-safe-queue/issues"
   },
+  "keywords": ["node-red"],
   "node-red": {
     "nodes": {
       "safeQueue": "red/safeQueue.js"

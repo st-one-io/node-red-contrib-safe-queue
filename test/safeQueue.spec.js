@@ -5,7 +5,7 @@ const {
 const os = require('os');
 const fs = require('fs');
 const path = require('path');
-const FileSystem = require('../red/FileSystem.js');
+const FileSystem = require('../src/FileSystem.js');
 
 function getDirBase() {
     var dirBase = path.join(os.tmpdir(), (Math.random() * (9999999 - 1) + 1).toString());

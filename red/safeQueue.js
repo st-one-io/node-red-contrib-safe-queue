@@ -14,7 +14,7 @@
    limitations under the License.
 */
 
-const FileSystem = require('./FileSystem.js');
+const FileSystem = require('../src/FileSystem.js');
 
 module.exports = function (RED) {
     "use strict";
