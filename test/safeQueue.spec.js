@@ -208,30 +208,31 @@ describe('#SafeQueue', () => {
         let pathBase = getDirBase();
         let fileSystem = new FileSystem({'path': pathBase});
 
-        var obj = {};
-        obj._msgid = "123456";
-        obj.payload = "File Data";
+        var teste = this;
 
-        var obj2 = {};
-        obj._msgid = "654321";
-        obj.payload = "File Data";
+        teste.obj1 = {'_msgid': "123456", 'payload': "File Data1"};
+        teste.obj2 = {'_msgid': "654321", 'payload': "File Data2"};
 
         fileSystem.init((err) => {
             if (!err) {
-                fileSystem.saveMessage(obj, (err, res) => {
+                fileSystem.saveMessage(teste.obj1, (err, res) => {
                     if (!err) {
-                        fileSystem.saveMessage(obj2, (err, res) => {
+                        fileSystem.saveMessage(teste.obj2, (err, res) => {
                             if (!err) {
-                                fileSystem.getMessage(obj._msgid, (err, data) => {
+                                fileSystem.getMessage(teste.obj1._msgid, (err, data) => {
                                     if (!err) {
-                                        expect(obj.payload).to.equal(data);
-
-                                        fileSystem.getQueueSize((err, res) => {
+                                        expect(data).to.be.deep.equal({'_msgid': "123456", 'payload': "File Data1"});
+                                        fileSystem.getMessage(teste.obj2._msgid, (err, data) => {
+                                            expect(data).to.be.deep.equal({'_msgid': "654321", 'payload': "File Data2"});
                                             if (!err) {
-                                                expect(2).to.equal(res);
-                                                destroyerDirBase(fileSystem, pathBase, (err) => {
+                                                fileSystem.getQueueSize((err, res) => {
                                                     if (!err) {
-                                                        done();
+                                                        expect(2).to.equal(res);
+                                                        destroyerDirBase(fileSystem, pathBase, (err) => {
+                                                            if (!err) {
+                                                                done();
+                                                            }
+                                                        });
                                                     }
                                                 });
                                             }
@@ -251,21 +252,21 @@ describe('#SafeQueue', () => {
         let fileSystem = new FileSystem({'path': pathBase});
         let dirQueue = path.join(pathBase, 'queue');
 
-        var obj = {};
-        obj._msgid = "123456";
-        obj.payload = "File Data";
+        var teste = this;
+
+        teste.obj = {'_msgid': "123456", 'payload' : "File Data"};
 
         fileSystem.init((err) => {
             if (!err) {
                 fs.rmdir(dirQueue, (err) => {
                     // console.log("rmdir dirQueue - Err: ", err);
                     if (!err) {
-                        fileSystem.saveMessage(obj, (err, res) => {
+                        fileSystem.saveMessage(teste.obj, (err, res) => {
                             // console.log("saveMessage - Err: ", err);
                             if (!err) {
-                                fileSystem.getMessage(obj._msgid, (err, data) => {
+                                fileSystem.getMessage(teste.obj._msgid, (err, data) => {
                                     if (!err) {
-                                        expect(obj.payload).to.equal(data);
+                                        expect(data).to.be.deep.equal({'_msgid': "123456", 'payload' : "File Data"});
                                         destroyerDirBase(fileSystem, pathBase, (err) => {
                                             if (!err) {
                                                 done();
@@ -286,9 +287,9 @@ describe('#SafeQueue', () => {
         let fileSystem = new FileSystem({'path': pathBase});
         let dirQueue = path.join(pathBase, 'queue');
 
-        var obj = {};
-        obj._msgid = "123456";
-        obj.payload = "File Data";
+        var teste = this;
+
+        teste.obj = {'_msgid': "123456", 'payload' : "File Data"};
 
         fileSystem.init((err) => {
             // console.log("File System Err: ", err);
@@ -296,13 +297,13 @@ describe('#SafeQueue', () => {
                 destroyerDirBase(fileSystem, pathBase, (err) => {
                     // console.log("Destroyer Err: ", err);
                     if (!err) {
-                        fileSystem.saveMessage(obj, (err, res) => {
+                        fileSystem.saveMessage(teste.obj, (err, res) => {
                             // console.log("Save Message Err: ", err);
                             if (!err) {
-                                fileSystem.getMessage(obj._msgid, (err, data) => {
+                                fileSystem.getMessage(teste.obj._msgid, (err, data) => {
                                     // console.log("Get Message Err: ", err);
                                     if (!err) {
-                                        expect(obj.payload).to.equal(data);
+                                        expect(data).to.be.deep.equal({'_msgid': "123456", 'payload' : "File Data"});
                                         destroyerDirBase(fileSystem, pathBase, (err) => {
                                             // console.log("Final Destroyer Err: ", err);
                                             if (!err) {
@@ -355,23 +356,20 @@ describe('#SafeQueue', () => {
         let pathBase = getDirBase();
         let fileSystem = new FileSystem({'path': pathBase});
 
-        var obj = {};
-        obj._msgid = "123456";
-        obj.payload = "File Data";
+        var teste = this;
 
-        var obj2 = {};
-        obj._msgid = "654321";
-        obj.payload = "File Data";
+        teste.obj1 = {'_msgid': "123456", 'payload': "File Data1"};
+        teste.obj2 = {'_msgid': "654321", 'payload': "File Data2"};
 
         fileSystem.init((err) => {
             if (!err) {
-                fileSystem.saveMessage(obj, (err, res) => {
+                fileSystem.saveMessage(teste.obj1, (err, res) => {
                     if (!err) {
-                        fileSystem.saveMessage(obj2, (err, res) => {
+                        fileSystem.saveMessage(teste.obj2, (err, res) => {
                             if (!err) {
-                                fileSystem.errorMessage(obj._msgid, (err, res) => {
+                                fileSystem.errorMessage(teste.obj1._msgid, (err, res) => {
                                     if (!err) {
-                                        fileSystem.errorMessage(obj2._msgid, (err, res) => {
+                                        fileSystem.errorMessage(teste.obj2._msgid, (err, res) => {
                                             fileSystem.getErrorSize((err, res) => {
                                                 if (!err) {
                                                     expect(2).to.equal(res);
@@ -397,23 +395,19 @@ describe('#SafeQueue', () => {
         let pathBase = getDirBase();
         let fileSystem = new FileSystem({'path': pathBase});
 
-        var obj = {};
-        obj._msgid = "123456";
-        obj.payload = "File Data";
-
-        var obj2 = {};
-        obj._msgid = "654321";
-        obj.payload = "File Data";
+        var teste = this;
+        teste.obj1 = {'_msgid': "123456", 'payload': "File Data1"};
+        teste.obj2 = {'_msgid': "654321", 'payload': "File Data2"};
 
         fileSystem.init((err) => {
             if (!err) {
-                fileSystem.saveMessage(obj, (err, res) => {
+                fileSystem.saveMessage(teste.obj1, (err, res) => {
                     if (!err) {
-                        fileSystem.saveMessage(obj2, (err, res) => {
+                        fileSystem.saveMessage(teste.obj2, (err, res) => {
                             if (!err) {
-                                fileSystem.doneMessage(obj._msgid, (err, res) => {
+                                fileSystem.doneMessage(teste.obj1._msgid, (err, res) => {
                                     if (!err) {
-                                        fileSystem.doneMessage(obj2._msgid, (err, res) => {
+                                        fileSystem.doneMessage(teste.obj2._msgid, (err, res) => {
                                             if (!err) {
                                                 fileSystem.getDoneSize((err, res) => {
                                                     if (!err) {
@@ -442,17 +436,16 @@ describe('#SafeQueue', () => {
         let fileSystem = new FileSystem({'path': pathBase});
         let dirError = path.join(pathBase, 'error');
 
-        var obj = {};
-        obj._msgid = "123456";
-        obj.payload = "File Data";
+        var teste = this;
+        teste.obj1 = {'_msgid': "123456", 'payload': "File Data"};
 
         fileSystem.init((err) => {
             if (!err) {
-                fileSystem.saveMessage(obj, (err, res) => {
+                fileSystem.saveMessage(teste.obj1, (err, res) => {
                     if (!err) {
                         fs.rmdir(dirError, (err) => {
                             if (!err) {
-                                fileSystem.errorMessage(obj._msgid, (err, res) => {
+                                fileSystem.errorMessage(teste.obj1._msgid, (err, res) => {
                                     if (!err) {
                                         fileSystem.getErrorSize((err, res) => {
                                             if (!err) {
@@ -479,17 +472,16 @@ describe('#SafeQueue', () => {
         let fileSystem = new FileSystem({'path': pathBase});
         let dirDone = path.join(pathBase, 'done');
 
-        var obj = {};
-        obj._msgid = "123456";
-        obj.payload = "File Data";
+        var teste = this;
+        teste.obj1 = {'_msgid': "123456", 'payload': "File Data"};
 
         fileSystem.init((err) => {
             if (!err) {
-                fileSystem.saveMessage(obj, (err, res) => {
+                fileSystem.saveMessage(teste.obj1, (err, res) => {
                     if (!err) {
                         fs.rmdir(dirDone, (err) => {
                             if (!err) {
-                                fileSystem.doneMessage(obj._msgid, (err, res) => {
+                                fileSystem.doneMessage(teste.obj1._msgid, (err, res) => {
                                     if (!err) {
                                         fileSystem.getDoneSize((err, res) => {
                                             if (!err) {
@@ -519,19 +511,17 @@ describe('#SafeQueue', () => {
         let pathBase = getDirBase();
         let fileSystem = new FileSystem({'path': pathBase});
 
-        var obj = {};
-        obj._msgid = "123456";
-        obj.payload = "File Data";
+        var teste = this;
 
-        var obj2 = {};
-        obj._msgid = "654321";
-        obj.payload = "File Data";
+        teste.obj1 = {'_msgid': "123456", 'payload': "File Data1"};
+        teste.obj2 = {'_msgid': "654321", 'payload': "File Data2"};
+
 
         fileSystem.init((err) => {
             if (!err) {
-                fileSystem.saveMessage(obj, (err, res) => {
+                fileSystem.saveMessage(teste.obj1, (err, res) => {
                     if (!err) {
-                        fileSystem.saveMessage(obj2, (err, res) => {
+                        fileSystem.saveMessage(teste.obj2, (err, res) => {
                             if (!err) {
                                 fileSystem.getQueueSize((err, res) => {
                                     if (!err) {
@@ -564,23 +554,20 @@ describe('#SafeQueue', () => {
         let pathBase = getDirBase();
         let fileSystem = new FileSystem({'path': pathBase});
 
-        var obj = {};
-        obj._msgid = "123456";
-        obj.payload = "File Data";
+        var teste = this;
 
-        var obj2 = {};
-        obj._msgid = "654321";
-        obj.payload = "File Data";
+        teste.obj1 = {'_msgid': "123456", 'payload': "File Data1"};
+        teste.obj2 = {'_msgid': "654321", 'payload': "File Data2"};
 
         fileSystem.init((err) => {
             if (!err) {
-                fileSystem.saveMessage(obj, (err, res) => {
+                fileSystem.saveMessage(teste.obj1, (err, res) => {
                     if (!err) {
-                        fileSystem.saveMessage(obj2, (err, res) => {
+                        fileSystem.saveMessage(teste.obj2, (err, res) => {
                             if (!err) {
-                                fileSystem.errorMessage(obj._msgid, (err, res) => {
+                                fileSystem.errorMessage(teste.obj1._msgid, (err, res) => {
                                     if (!err) {
-                                        fileSystem.errorMessage(obj2._msgid, (err, res) => {
+                                        fileSystem.errorMessage(teste.obj2._msgid, (err, res) => {
                                             fileSystem.getErrorSize((err, res) => {
                                                 if (!err) {
                                                     expect(2).to.equal(res);
@@ -615,23 +602,20 @@ describe('#SafeQueue', () => {
         let pathBase = getDirBase();
         let fileSystem = new FileSystem({'path': pathBase});
 
-        var obj = {};
-        obj._msgid = "123456";
-        obj.payload = "File Data";
+        var teste = this;
 
-        var obj2 = {};
-        obj._msgid = "654321";
-        obj.payload = "File Data";
+        teste.obj1 = {'_msgid': "123456", 'payload': "File Data1"};
+        teste.obj2 = {'_msgid': "654321", 'payload': "File Data2"};
 
         fileSystem.init((err) => {
             if (!err) {
-                fileSystem.saveMessage(obj, (err, res) => {
+                fileSystem.saveMessage(teste.obj1, (err, res) => {
                     if (!err) {
-                        fileSystem.saveMessage(obj2, (err, res) => {
+                        fileSystem.saveMessage(teste.obj2, (err, res) => {
                             if (!err) {
-                                fileSystem.doneMessage(obj._msgid, (err, res) => {
+                                fileSystem.doneMessage(teste.obj1._msgid, (err, res) => {
                                     if (!err) {
-                                        fileSystem.doneMessage(obj2._msgid, (err, res) => {
+                                        fileSystem.doneMessage(teste.obj2._msgid, (err, res) => {
                                             if (!err) {
                                                 fileSystem.getDoneSize((err, res) => {
                                                     if (!err) {

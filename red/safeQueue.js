@@ -45,7 +45,7 @@ module.exports = function (RED) {
 
         this.storageMode = config.storage;
 
-        let infoPath = {'path':path, 'queueName': this.name};
+        let infoPath = {'path': path, 'queueName': this.name};
 
         if (this.storageMode == 'fs') {
             this.storage = new FileSystem(infoPath);
@@ -61,13 +61,15 @@ module.exports = function (RED) {
 
         node.init = function init() {
             this.storage.init((err) => {
-                this.storage.getListFiles(function (err, files) {
-                    if (!err) {
-                        for (var file of files) {
-                            node.addVirtualQueue(file);
+                if (!err) {
+                    this.storage.getListFiles(function (err, files) {
+                        if (!err) {
+                            for (var file of files) {
+                                node.addVirtualQueue(file);
+                            }
                         }
-                    }
-                });
+                    });
+                }
             });
         }
 
@@ -296,8 +298,6 @@ module.exports = function (RED) {
             }
         }
 
-
-        //--> Métodos desatualizados 
         node.deleteDone = function deleteDone(callback) {
             this.storage.deleteDone(callback);
         }
@@ -313,9 +313,8 @@ module.exports = function (RED) {
         node.resendErrors = function resendErrors(callback) {
             this.storage.resendErrors(callback);
         }
-        //--> Métodos desatualizados 
-
     }
+
     RED.nodes.registerType("queue config", SafeQueueConfig);
 
     // ------------- SafeQueue In (queue in) ------------
@@ -363,6 +362,7 @@ module.exports = function (RED) {
             });
         });
     }
+
     RED.nodes.registerType("queue in", SafeQueueIn);
 
     // ------------- SafeQueue Out (queue out) ------------
@@ -434,6 +434,7 @@ module.exports = function (RED) {
 
 
     }
+
     RED.nodes.registerType("queue out", SafeQueueOut);
 
     // ------------- SafeQueue Control (queue control) ------------
@@ -615,9 +616,9 @@ module.exports = function (RED) {
             }
 
 
-
         });
     }
+
     RED.nodes.registerType("queue control", SafeQueueControl);
 
     // ------------- SafeQueue Acknowledge (queue ack) ------------
@@ -642,6 +643,7 @@ module.exports = function (RED) {
 
         });
     }
+
     RED.nodes.registerType("queue ack", SafeQueueAcknowledge);
 
 };

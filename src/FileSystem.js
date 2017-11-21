@@ -279,7 +279,7 @@ class FileSystem extends EventEmitter {
         });
 
         function gravaFile() {
-            fs.writeFile(uriFile, obj.payload, (err) => {
+            fs.writeFile(uriFile, JSON.stringify(obj), (err) => {
                 error = err;
 
                 if (!err) {
@@ -505,7 +505,7 @@ class FileSystem extends EventEmitter {
             error = err;
 
             if (!err) {
-                results = data;
+                results = JSON.parse(data);
             }
 
             callback(error, results);
