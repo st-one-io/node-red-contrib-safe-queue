@@ -435,18 +435,23 @@ class FileSystem extends EventEmitter {
 
     //--> GET FILES
     getMessage(keyFile, callback) {
-        const uri = pathLib.join(this.path, queueFolder, keyFile + extension);
 
-        var error = null;
-        var results = {};
+        const uriFile = pathLib.join(this.uriQueue, keyFile + extension);
 
-        fs.readFile(uri, 'utf8', (err, data) => {
-            error = err;
+        var result;
 
-            if (!err) {
-                results = JSON.parse(data);
+        fs.readFile(uriFile, 'utf8', (err, data) => {
+            if (err) {
+                callback(err);
+                return;
             }
-            callback(error, results);
+
+            try {
+                result = JSON.parse(data);
+                callback(null, result);
+            } catch (e) {
+                callback(e);
+            }
         });
     }
 
