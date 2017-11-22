@@ -45,7 +45,7 @@ module.exports = function (RED) {
 
         this.storageMode = config.storage;
 
-        let infoPath = {'path': path, 'queueName': this.name};
+        let infoPath = {'path': path};
 
         if (this.storageMode == 'fs') {
             this.storage = new FileSystem(infoPath);

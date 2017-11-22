@@ -412,19 +412,21 @@
         color: '#a6bbcf',
         defaults: {
             name: {
-                value: "",
-                required: true,
-                validate: function (text) {
-                    var patt = new RegExp(/[\\/?%*:|\"<>]/);
-                    return !patt.test(text);
-                }
+                value: ""
             },
             storage: {
                 value: "fs",
                 required: true
             },
             path: {
-                value: ""
+                value: "",
+                required: true
+                /*
+                validate: function (text) {
+                    var patt = new RegExp(/[\\/?%*:|\"<>]/);
+                    return !patt.test(text);
+                }
+                */
             },
             urlDataBase: {
                 value: ""
@@ -445,7 +447,7 @@
 
         },
         label: function () {
-            return this.name || this._("safe-queue.config.define.name");
+            return this.name || this.path;
         },
         oneditprepare: function () {
 

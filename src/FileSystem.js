@@ -1,3 +1,5 @@
+'use strict';
+
 const fs = require('fs');
 const os = require('os');
 const pathLib = require('path');
@@ -13,14 +15,9 @@ class FileSystem extends EventEmitter {
     constructor(obj) {
         super();
 
-        this.path = obj.path;
+        obj = obj || {};
 
-        let queueName = obj.queueName;
-        let homeDir = os.homedir();
-
-        if (this.path.length == 0) {
-            this.path = pathLib.join(homeDir, queueName);
-        }
+        this.path = pathLib.resolve(process.cwd(), obj.path || '');
 
         this.uriBase = pathLib.join(this.path);
         this.uriQueue = pathLib.join(this.path, queueFolder);
