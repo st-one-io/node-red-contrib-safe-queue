@@ -30,6 +30,6 @@
     "chai": "^4.1.2"
   },
   "dependencies": {
-    "mkdir-p": "0.0.7"
+    "mkdirp": "^0.5.1"
   }
 }

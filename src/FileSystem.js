@@ -4,7 +4,7 @@ const fs = require('fs');
 const os = require('os');
 const pathLib = require('path');
 const EventEmitter = require('events');
-const mkdirp = require('mkdir-p');
+const mkdirp = require('mkdirp');
 
 const queueFolder = "queue";
 const doneFolder = "done";
