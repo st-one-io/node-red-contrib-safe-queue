@@ -16,7 +16,9 @@
   "bugs": {
     "url": "https://github.com/netsmarttech/node-red-contrib-safe-queue/issues"
   },
-  "keywords": ["node-red"],
+  "keywords": [
+    "node-red"
+  ],
   "node-red": {
     "nodes": {
       "safeQueue": "red/safeQueue.js"
@@ -26,5 +28,8 @@
     "mocha": "^4.0.1",
     "nyc": "^11.3.0",
     "chai": "^4.1.2"
+  },
+  "dependencies": {
+    "mkdir-p": "0.0.7"
   }
 }

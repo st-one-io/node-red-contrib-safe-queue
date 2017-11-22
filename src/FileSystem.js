@@ -4,6 +4,8 @@ const fs = require('fs');
 const os = require('os');
 const pathLib = require('path');
 const EventEmitter = require('events');
+const mkdirp = require('mkdir-p');
+
 const queueFolder = "queue";
 const doneFolder = "done";
 const errorFolder = "error";
@@ -27,66 +29,30 @@ class FileSystem extends EventEmitter {
 
     init(callback) {
 
-        var fileSystem = this;
-
-        fs.stat(fileSystem.uriBase, (err) => {
-            if (err) {
-                //console.log("Construtor  -> New UrlBase");
-                fs.mkdir(fileSystem.uriBase, (err) => {
-                    //console.log("Construtor  -> Dir UrlBase - ERR: ", err);
-                    if (!err) {
-                        fs.mkdir(fileSystem.uriQueue, (err) => {
-                            //console.log("Construtor  -> Dir UrlQueue - ERR: ", err);
-                            if (!err) {
-                                fs.mkdir(fileSystem.uriDone, (err) => {
-                                    //console.log("Construtor  -> Dir UrlDone - ERR: ", err);
-                                    if (!err) {
-                                        fs.mkdir(fileSystem.uriError, (err) => {
-                                            //console.log("Construtor  -> Dir UrlError - ERR: ", err);
-                                            if (!err) {
-                                                //console.log("chamou");
-                                                fileSystem.createWatch();
-                                                callback(err);
-                                            } else {
-                                                console.log("failure repository: " + fileSystem.uriError + "\n Error: " + err);
-                                                callback(err);
-                                            }
-                                        });
-                                    } else {
-                                        console.log("failure repository: " + fileSystem.uriDone + "\n Error: " + err);
-                                        callback(err);
-                                    }
-                                });
-                            } else {
-                                console.log("failure repository: " + fileSystem.uriQueue + "\n Error: " + err);
-                                callback(err);
-                            }
-                        });
-                    } else {
-                        console.log("failure repository: " + fileSystem.uriBase + "\n Error: " + err);
-                        callback(err);
-                    }
-                });
-            } else {
-                fs.stat(fileSystem.uriQueue, (err, stats) => {
-                    if (err) {
-                        fs.mkdir(fileSystem.uriQueue, (err) => {
-                            if (!err) {
-                                fileSystem.createWatch();
-                                callback(err);
-                            }
-                        });
-                    } else {
-                        if (stats.isDirectory()) {
-                            fileSystem.createWatch();
-                            callback(err);
-                        }
-                    }
-                });
-
+        mkdirp(this.uriQueue, (err, made) =>{
+            if(err){
+                callback(err);
+                return;
             }
-        });
 
+            mkdirp(this.uriDone, (err, made) =>{
+               if(err){
+                   callback(err);
+                   return;
+               }
+
+               mkdirp(this.uriError, (err, made) => {
+                   if(err){
+                       callback(err);
+                       return;
+                   }
+
+                   this.createWatch();
+                   callback(null);
+
+               });
+            });
+        });
     }
 
     createWatch() {
