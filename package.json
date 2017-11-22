@@ -4,7 +4,8 @@
   "description": "A Node-RED node Safe Queue",
   "main": "index.js",
   "scripts": {
-    "test": "nyc --reporter=html --reporter=text mocha"
+    "test": "nyc --reporter=html --reporter=text mocha",
+    "plato": "plato -r -d report src"
   },
   "repository": {
     "type": "git",

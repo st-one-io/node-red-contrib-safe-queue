@@ -225,13 +225,13 @@ module.exports = function (RED) {
             var listNodes = this.listNodeOut;
 
             if (this.stopProccess) {
-                for (var x = 0; x < listNodes.length; x++) {
+                for (let x = 0; x < listNodes.length; x++) {
                     listNodes[x].setOutStopProccess();
                 }
             }
 
 
-            for (var x = 0; x < listNodes.length; x++) {
+            for (let x = 0; x < listNodes.length; x++) {
                 if (!listNodes[x].getOutInProccess()) {
                     return listNodes[x].id;
                 }

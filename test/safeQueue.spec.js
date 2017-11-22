@@ -506,7 +506,6 @@ describe('#SafeQueue', () => {
             }
         });
     });
-
     //--> Movimentação de Arquivos
 
 
