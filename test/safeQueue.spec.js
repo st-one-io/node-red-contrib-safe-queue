@@ -813,7 +813,7 @@ describe('#SafeQueue', () => {
                                 expect(compare).to.deep.equal(res);
                                 fileSystem.getErrorSize((err, res) => {
                                     if (!err) {
-                                        expect(1).to.equal(res);
+                                        expect(0).to.equal(res);
                                         destroyerDirBase(fileSystem, pathBase, (err) => {
                                             if (!err) {
                                                 done();

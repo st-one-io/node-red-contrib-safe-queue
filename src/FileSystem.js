@@ -11,6 +11,71 @@ const doneFolder = "done";
 const errorFolder = "error";
 const extension = ".json";
 
+function countFiles(arr) {
+    var count = 0;
+    arr.forEach(f => {
+        if (f.endsWith(extension)) count++;
+    });
+    return count;
+}
+
+function getFolderSize(path, chkSubdir, callback) {
+
+    var dirsCount, count = 0;
+
+    fs.readdir(path, 'utf8', (err, arr) => {
+
+        if (err) {
+            callback(err);
+            return;
+        }
+
+        if (chkSubdir) {
+            dirsCount = arr.length;
+
+            if(dirsCount === 0){
+                callback(null, 0);
+                return;
+            }
+
+            arr.forEach(dir => {
+                var newdir = pathLib.join(path, dir);
+
+                fs.stat(newdir, (err, stat) => {
+                    if (dirsCount < 0) return;
+
+                    if (err) {
+                        callback(err);
+                        dirsCount = -1;
+                        return;
+                    }
+
+                    dirsCount--;
+
+                    if (!stat.isDirectory()) return;
+
+                    getFolderSize(newdir, false, (err, cnt) => {
+                        if (dirsCount < 0) return;
+
+                        if (err) {
+                            callback(err);
+                            dirsCount = -1;
+                            return;
+                        }
+
+                        count += cnt;
+
+                        if (dirsCount === 0) {
+                            callback(null, count);
+                        }
+                    })
+                });
+            });
+        } else {
+            callback(null, countFiles(arr))
+        }
+    });
+}
 
 class FileSystem extends EventEmitter {
 
@@ -85,100 +150,15 @@ class FileSystem extends EventEmitter {
 
     //--> GET SIZES
     getQueueSize(callback) {
-        const uri = pathLib.join(this.path, queueFolder);
-
-        var cont = 0;
-        var error = null;
-
-        fs.readdir(uri, 'utf8', (err, files) => {
-
-            if (!err) {
-                cont = files.length;
-            } else {
-                console.log(err);
-            }
-
-            error = err;
-            callback(error, cont);
-
-        });
+        getFolderSize(this.uriQueue, false, callback);
     }
 
     getDoneSize(callback) {
-        const url = pathLib.join(this.path, doneFolder);
-        var cont = 0;
-        var error = null;
-        var turn = 0;
-
-        fs.readdir(url, 'utf8', (err, dirs) => {
-
-            if (!err) {
-                if (dirs.length > 0) {
-                    for (let x = 0; x < dirs.length; x++) {
-
-                        var newUrl = pathLib.join(url, dirs[x]);
-
-                        fs.readdir(newUrl, 'utf8', (err, files) => {
-                            error = err;
-
-                            if (!err) {
-                                cont = cont + files.length;
-                                turn++;
-                                if (turn == dirs.length) {
-                                    callback(error, cont);
-                                }
-
-                            } else {
-                                callback(error, cont);
-                            }
-                        });
-                    }
-                } else {
-                    callback(error, cont);
-                }
-            } else {
-                callback(error, cont);
-            }
-        });
+        getFolderSize(this.uriDone, true, callback);
     }
 
     getErrorSize(callback) {
-        const url = pathLib.join(this.path, errorFolder);
-
-        var cont = 0;
-        var error = null;
-        var turn = 0;
-
-        fs.readdir(url, 'utf8', (err, dirs) => {
-
-            if (!err) {
-
-                if (dirs.length > 0) {
-                    for (let x = 0; x < dirs.length; x++) {
-
-                        var newUrl = pathLib.join(url, dirs[x]);
-
-                        fs.readdir(newUrl, 'utf8', (err, files) => {
-
-                            if (!err) {
-                                cont = cont + files.length;
-                                turn++;
-                                if (turn == dirs.length) {
-                                    callback(error, cont);
-                                }
-
-                            } else {
-                                callback(error, cont);
-                            }
-                        });
-                    }
-                } else {
-                    callback(error, cont);
-                }
-            } else {
-                callback(error, cont);
-            }
-        });
+        getFolderSize(this.uriError, true, callback);
     }
 
     //--> GET SIZES
