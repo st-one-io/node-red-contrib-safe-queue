@@ -29,28 +29,28 @@ class FileSystem extends EventEmitter {
 
     init(callback) {
 
-        mkdirp(this.uriQueue, (err, made) =>{
-            if(err){
+        mkdirp(this.uriQueue, (err, made) => {
+            if (err) {
                 callback(err);
                 return;
             }
 
-            mkdirp(this.uriDone, (err, made) =>{
-               if(err){
-                   callback(err);
-                   return;
-               }
+            mkdirp(this.uriDone, (err, made) => {
+                if (err) {
+                    callback(err);
+                    return;
+                }
 
-               mkdirp(this.uriError, (err, made) => {
-                   if(err){
-                       callback(err);
-                       return;
-                   }
+                mkdirp(this.uriError, (err, made) => {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
 
-                   this.createWatch();
-                   callback(null);
+                    this.createWatch();
+                    callback(null);
 
-               });
+                });
             });
         });
     }
@@ -58,21 +58,22 @@ class FileSystem extends EventEmitter {
     createWatch() {
 
         this.watch = true;
+        var self = this;
 
-        var uriQueue = pathLib.join(this.path, queueFolder);
+        if (this.watcher) {
+            this.close();
+        }
 
-        var fileSystem = this;
-
-        this.watcher = fs.watch(uriQueue, (eventType, fileName) => this.onChange(eventType, fileName));
+        this.watcher = fs.watch(this.uriQueue, (eventType, fileName) => this.onChange(eventType, fileName));
 
         this.watcher.on('error', (e) => {
-            fileSystem.close();
+            self.close();
         });
     }
 
     close() {
-        //console.log("Close Watch");
-        this.watcher.close();
+        this.watcher && this.watcher.close();
+        this.watcher = null;
     }
 
     onChange(eventType, fileName) {
