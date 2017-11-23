@@ -672,7 +672,7 @@ describe('#SafeQueue', () => {
                             if (!err) {
                                 fileSystem.saveMessage(teste.obj3, (err, res) => {
                                     if (!err) {
-                                        fileSystem.getListFiles((err, res) => {
+                                        fileSystem.getMessageList((err, res) => {
 
                                             var compare = [teste.obj1._msgid, teste.obj2._msgid, teste.obj3._msgid];
 
@@ -774,7 +774,7 @@ describe('#SafeQueue', () => {
                                 fileSystem.getMessage('file', (err, data) => {
                                     if (!err) {
                                         expect(data).to.be.deep.equal({'_msgid': "123456", 'payload': "File Data 1"});
-                                        fileSystem.getListFiles((err, res) => {
+                                        fileSystem.getMessageList((err, res) => {
 
                                             var compare = ['file'];
                                             expect(compare).to.deep.equal(res);
@@ -807,7 +807,7 @@ describe('#SafeQueue', () => {
             if (!err) {
                 fs.writeFile(dirFile, JSON.stringify(teste.obj1), (err) => {
                     if (!err) {
-                        fileSystem.getListFiles((err, res) => {
+                        fileSystem.getMessageList((err, res) => {
                             if (!err) {
                                 var compare = [];
                                 expect(compare).to.deep.equal(res);
@@ -848,7 +848,7 @@ describe('#SafeQueue', () => {
                                 fileSystem.getMessage('file', (err, data) => {
                                     if (!err) {
                                         expect(data).to.be.deep.equal({'_msgid': "123456", 'payload': "File Data 1"});
-                                        fileSystem.getListFiles((err, res) => {
+                                        fileSystem.getMessageList((err, res) => {
 
                                             var compare = ['file'];
                                             expect(compare).to.deep.equal(res);
@@ -897,7 +897,7 @@ describe('#SafeQueue', () => {
                                 fileSystem.getMessage('file', (err, data) => {
                                     if (!err) {
                                         expect(data).to.be.deep.equal({'_msgid': "123456", 'payload': "File Data 1"});
-                                        fileSystem.getListFiles((err, res) => {
+                                        fileSystem.getMessageList((err, res) => {
 
                                             var compare = ['file'];
                                             expect(compare).to.deep.equal(res);

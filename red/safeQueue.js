@@ -62,7 +62,7 @@ module.exports = function (RED) {
         node.init = function init() {
             this.storage.init((err) => {
                 if (!err) {
-                    this.storage.getListFiles(function (err, files) {
+                    this.storage.getMessageList(function (err, files) {
                         if (!err) {
                             for (var file of files) {
                                 node.addVirtualQueue(file);
@@ -83,10 +83,6 @@ module.exports = function (RED) {
 
         node.getMessage = function getMessage(obj, callback) {
             this.storage.getMessage(obj, callback);
-        }
-
-        node.getListFiles = function getListFiles(callback) {
-            this.storage.getListFiles(callback);
         }
 
         node.getQueueSize = function getQueueSize(callback) {

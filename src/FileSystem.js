@@ -86,10 +86,10 @@ function getFolderSize(path, chkSubdir, callback) {
     });
 }
 
-function moveFile(nameFile, oldPath, newPath, callback) {
+function moveFile(nameFile, extensionFile, oldPath, newPath, callback) {
 
-    let oldPathFile = pathLib.join(oldPath, nameFile + extension);
-    let newPathFile = pathLib.join(newPath, nameFile + extension);
+    let oldPathFile = pathLib.join(oldPath, nameFile + extensionFile);
+    let newPathFile = pathLib.join(newPath, nameFile + extensionFile);
 
     fs.rename(oldPathFile, newPathFile, (err) => {
         if (err) {
@@ -200,43 +200,6 @@ class FileSystem extends EventEmitter {
 
 
     //--> CONTROL FILES
-
-    checkDir(dir, callback) {
-
-        let uriBase = pathLib.join(this.path);
-        var fileSystem = this;
-
-        fs.stat(uriBase, (err, stats) => {
-            if (!err) {
-                fs.stat(dir, (err, stats) => {
-                    if (!err) {
-                        callback(err, true);
-                    } else {
-                        //Create dir error
-                        fs.mkdir(dir, (err) => {
-                            if (!err) {
-                                callback(err, true);
-                            } else {
-                                callback(err, false);
-                            }
-                        });
-
-                    }
-                });
-            } else {
-                //Create Base
-                fileSystem.close();
-                fileSystem.init((err) => {
-                    if (!err) {
-                        callback(err, true);
-                    } else {
-                        callback(err, false);
-                    }
-                });
-            }
-        });
-    }
-
     saveMessage(obj, callback) {
 
         var uriFile = pathLib.join(this.uriQueue, obj._msgid + extension);
@@ -271,8 +234,8 @@ class FileSystem extends EventEmitter {
         let oldPath = pathLib.join(this.uriQueue);
         let newPath = pathLib.join(this.uriDone, getDateString());
 
-        moveFile(fileName, oldPath, newPath, (err) => {
-            if(err){
+        moveFile(fileName, extension, oldPath, newPath, (err) => {
+            if (err) {
                 callback(err);
                 return;
             }
@@ -285,72 +248,14 @@ class FileSystem extends EventEmitter {
         let oldPath = pathLib.join(this.uriQueue);
         let newPath = pathLib.join(this.uriError, getDateString());
 
-        moveFile(fileName, oldPath, newPath, (err) => {
-            if(err){
+        moveFile(fileName, extension, oldPath, newPath, (err) => {
+            if (err) {
                 callback(err);
                 return;
             }
             callback(err);
         });
     }
-
-    incompatibleFile(fileName, callback) {
-
-        const uriBase = pathLib.join(this.path);
-        const uriError = pathLib.join(uriBase, errorFolder);
-        const uri = pathLib.join(uriBase, queueFolder, fileName);
-        const baseNewUri = pathLib.join(uriError, 'incompatible');
-        const newUriFile = pathLib.join(baseNewUri, fileName);
-
-        var error = null;
-        var results = null;
-
-        this.checkDir(uriError, (err, res) => {
-            if (!err) {
-                moveError();
-            }
-        });
-
-        function moveError() {
-            fs.stat(baseNewUri, (err, stats) => {
-                error = err;
-
-                if (!err) {
-                    if (stats.isDirectory()) {
-                        fs.rename(uri, newUriFile, (err) => {
-                            error = err;
-
-                            if (!err) {
-                                results = true;
-                                callback(error, results);
-                            } else {
-                                results = false;
-                                callback(error, results);
-                            }
-                        });
-                    }
-                } else {
-                    fs.mkdir(baseNewUri, (err) => {
-                        error = err;
-
-                        if (!err) {
-                            fs.rename(uri, newUriFile, (err) => {
-                                error = err;
-                                if (!err) {
-                                    results = true;
-                                    callback(error, results);
-                                } else {
-                                    results = false;
-                                    callback(error, results);
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-        }
-    }
-
     //--> CONTROL FILES
 
     //--> GET FILES
@@ -375,42 +280,33 @@ class FileSystem extends EventEmitter {
         });
     }
 
-    getListFiles(callback) {
+    getMessageList(callback) {
 
-        const uri = pathLib.join(this.path, queueFolder);
-
-        var fileSystem = this;
-        var error = null;
         var listFiles = [];
 
-        fs.readdir(uri, 'utf8', (err, files) => {
-            error = err;
-            let fail = false;
+        fs.readdir(this.uriQueue, 'utf8', (err, files) => {
 
-            if (!err) {
-                for (var file of files) {
+            if (err) {
+                callback(err);
+                return;
+            }
 
-                    const uriFile = pathLib.join(uri, file);
-                    let extName = pathLib.extname(uriFile);
+            for (var file of files) {
 
-                    if (extName == extension) {
-                        var baseName = pathLib.basename(uriFile, extension);
-                        listFiles.push(baseName);
+                const uriFile = pathLib.join(this.uriQueue, file);
+                let extName = pathLib.extname(uriFile);
 
-                    } else {
-                        //Mover para erro
-                        fail = true;
-                        fileSystem.incompatibleFile(file, (err, res) => {
-                            if (!err) {
-                                callback(error, listFiles);
-                            }
-                        });
-                    }
-                }
-                if (!fail) {
-                    callback(error, listFiles);
+                if (extName === extension) {
+                    var baseName = pathLib.basename(uriFile, extension);
+                    listFiles.push(baseName);
+
+                } else {
+                    //Mover para erro
+                    let newPath = pathLib.join(this.uriError, getDateString());
+                    moveFile(baseName, extName, this.uriQueue, newPath, (err) =>{});
                 }
             }
+            callback(null, listFiles);
         });
     }
 
