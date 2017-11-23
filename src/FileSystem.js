@@ -348,41 +348,160 @@ class FileSystem extends EventEmitter {
         });
     }
 
-    resendErrors(callback) {
+    resendErrors(days, callback) {
 
-        var error = null;
+        days = days || 0;
 
-        var urlError = pathLib.join(this.path, errorFolder);
+        if (days === 0) {
+            fs.readdir(this.uriError, 'utf8', (err, dirs) => {
 
-        var urlQueue = pathLib.join(this.path, queueFolder);
-
-        fs.readdir(urlError, 'utf8', (err, dirs) => {
-
-            error = err;
-
-            if (!err) {
-                for (var i = 0; i < dirs.length; i++) {
-
-                    var urlDir = pathLib.join(urlError, dirs[i]);
-
-                    var files = fs.readdirSync(urlDir, 'utf8');
-
-                    for (var x = 0; x < files.length; x++) {
-
-                        var urlFile = pathLib.join(urlDir, files[x]);
-                        var urlNext = pathLib.join(urlQueue, files[x]);
-
-                        fs.renameSync(urlFile, urlNext);
-                    }
-
-                    fs.rmdirSync(urlDir);
+                if (err) {
+                    callback(err);
+                    return;
                 }
 
-                callback(error, true);
-            } else {
-                callback(error, false);
+                var countDirs = dirs.length;
+
+                if (countDirs === 0) {
+                    callback(err);
+                    return;
+                }
+
+                dirs.forEach(dir => {
+
+                    let urlDir = pathLib.join(this.uriError, dir);
+
+                    fs.stat(urlDir, (err, stat) => {
+                        if(err){
+                            callback(err);
+                            return;
+                        }
+
+                        fs.readdir(urlDir, 'utf-8', (err, files) => {
+                            if (err) {
+                                callback(err);
+                                return;
+                            }
+
+                            var countFiles = files.length;
+
+                            if (countFiles === 0) {
+                                fs.rmdir(urlDir, (err) => {
+                                    callback(err);
+                                });
+                            }
+
+                            files.forEach(file => {
+                                let oldFile = pathLib.join(urlDir, file);
+                                let newFile = pathLib.join(this.uriQueue, file);
+
+                                fs.stat(oldFile, (err, stat) => {
+                                    if(err){
+                                       callback(err);
+                                       return;
+                                    }
+
+                                    if(stat.isDirectory()){
+                                        return;
+                                    }
+                                    fs.rename(oldFile, newFile, (err) => {
+
+                                        if (err) {
+                                            callback(err);
+                                            return;
+                                        }
+
+                                        countFiles--;
+
+                                        if (countFiles === 0) {
+                                            if (countDirs === 0) {
+                                                callback(err);
+                                            }
+                                        }
+
+                                    });
+                                });
+                            });
+                        });
+                    });
+                    countDirs--;
+                });
+            });
+        }
+
+        var countDays = days;
+
+        if (days > 0) {
+
+            for (var x = 1; x <= days; x++) {
+
+                let textData = moment().subtract(x, 'days').format("YYYY-MM-DD");
+
+                let urlDir = pathLib.join(this.uriError, textData);
+
+                fs.stat(urlDir, (err, stat) => {
+
+                    if(err){
+                        callback(err);
+                        return;
+                    }
+
+                    if(!stat.isDirectory()){
+                        return;
+                    }
+
+                    fs.readdir(urlDir, 'utf-8', (err, files) => {
+                        if (err) {
+                            callback(err);
+                            return;
+                        }
+
+                        var countFiles = files.length;
+
+                        if (countFiles === 0) {
+                            fs.rmdir(urlDir, (err) => {
+                                callback(err);
+                            });
+                        }
+
+                        files.forEach(file => {
+                            let oldFile = pathLib.join(urlDir, file);
+                            let newFile = pathLib.join(this.uriQueue, file);
+
+                            fs.stat(oldFile, (err, stat) => {
+                                if(err){
+                                    callback(err);
+                                    return;
+                                }
+
+                                fs.rename(oldFile, newFile, (err) => {
+
+                                    if (err) {
+                                        callback(err);
+                                        return;
+                                    }
+
+                                    countFiles--;
+
+                                    if (countFiles === 0) {
+                                        if (countDays === 0) {
+                                            fs.rmdir(urlDir, (err) => {
+                                                callback(err);
+                                            });
+                                        }
+                                    }
+
+                                });
+                            });
+
+                        });
+                    });
+                });
+
+
+                countDays--;
             }
-        });
+        }
     }
 
     //--> GET FILES

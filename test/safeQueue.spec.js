@@ -720,7 +720,7 @@ describe('#SafeQueue', () => {
                                                                 fileSystem.getErrorSize((err, res) => {
                                                                     if (!err) {
                                                                         expect(3).to.equal(res);
-                                                                        fileSystem.resendErrors((err, res) => {
+                                                                        fileSystem.resendErrors(null, (err, res) => {
                                                                             if (!err) {
                                                                                 fileSystem.getQueueSize((err, res) => {
                                                                                     if (!err) {
