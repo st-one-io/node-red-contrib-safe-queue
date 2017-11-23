@@ -33,7 +33,7 @@ function getFolderSize(path, chkSubdir, callback) {
         if (chkSubdir) {
             dirsCount = arr.length;
 
-            if(dirsCount === 0){
+            if (dirsCount === 0) {
                 callback(null, 0);
                 return;
             }
@@ -204,31 +204,31 @@ class FileSystem extends EventEmitter {
 
     saveMessage(obj, callback) {
 
-        const uriQueue = pathLib.join(this.path, queueFolder);
-        const uriFile = pathLib.join(this.path, queueFolder, obj._msgid + extension);
+        var uriFile = pathLib.join(this.uriQueue, obj._msgid + extension);
 
-        var fileSystem = this;
+        fs.writeFile(uriFile, JSON.stringify(obj), {flags: 'rs+'}, (err) => {
+            if (err) {
+                mkdirp(this.uriQueue, (err, make) => {
+                    if (err) {
+                        console.log(make);
+                        callback(err);
+                    }
 
-        var error = null;
+                    fs.writeFile(uriFile, JSON.stringify(obj), {flags: 'rs+'}, (err) => {
+                        if (err) {
+                            callback(err);
+                            return;
+                        }
 
-        this.checkDir(uriQueue, (err, res) => {
+                        callback(err);
+                    });
+                });
+            }
+
             if (!err) {
-                fileSystem.createWatch();
-                gravaFile();
+                callback(null, true);
             }
         });
-
-        function gravaFile() {
-            fs.writeFile(uriFile, JSON.stringify(obj), (err) => {
-                error = err;
-
-                if (!err) {
-                    callback(error, true);
-                } else {
-                    callback(error, false);
-                }
-            });
-        }
     }
 
     doneMessage(obj, callback) {
