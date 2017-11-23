@@ -60,7 +60,7 @@ function destroyerDirBase(fileSystem, pathBase, callback) {
         fs.stat(dirDone, (err, stats) => {
             if (!err) {
                 //deleta files
-                fileSystem.deleteDone((err) => {
+                fileSystem.deleteDone(null, (err) => {
                     if (!err) {
                         //deleta dir
                         fs.rmdir(dirDone, (err) => {
@@ -95,7 +95,7 @@ function destroyerDirBase(fileSystem, pathBase, callback) {
         fs.stat(dirError, (err, stats) => {
             if (!err) {
                 //deleta files
-                fileSystem.deleteError((err) => {
+                fileSystem.deleteError(null, (err) => {
                     if (!err) {
                         //deleta dir
                         fs.rmdir(dirError, (err) => {
@@ -574,7 +574,7 @@ describe('#SafeQueue', () => {
                                             fileSystem.getErrorSize((err, res) => {
                                                 if (!err) {
                                                     expect(2).to.equal(res);
-                                                    fileSystem.deleteError((err, res) => {
+                                                    fileSystem.deleteError(null, (err, res) => {
                                                         if (!err) {
                                                             fileSystem.getErrorSize((err, res) => {
                                                                 if (!err) {
@@ -623,7 +623,7 @@ describe('#SafeQueue', () => {
                                                 fileSystem.getDoneSize((err, res) => {
                                                     if (!err) {
                                                         expect(2).to.equal(res);
-                                                        fileSystem.deleteDone((err, res) => {
+                                                        fileSystem.deleteDone(null, (err, res) => {
                                                             if (!err) {
                                                                 fileSystem.getDoneSize((err, res) => {
                                                                     if (!err) {
