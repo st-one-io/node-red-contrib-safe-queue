@@ -11,8 +11,6 @@
     "type": "git",
     "url": "git+https://github.com/netsmarttech/node-red-contrib-safe-queue.git"
   },
-  "author": "Smart-Tech",
-  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/netsmarttech/node-red-contrib-safe-queue/issues"
   },
@@ -32,5 +30,7 @@
   "dependencies": {
     "mkdirp": "^0.5.1",
     "moment": "^2.19.2"
-  }
+  },
+  "author": "Smart-Tech",
+  "license": "Apache-2.0"
 }
