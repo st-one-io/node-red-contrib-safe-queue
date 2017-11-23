@@ -11,6 +11,15 @@ const doneFolder = "done";
 const errorFolder = "error";
 const extension = ".json";
 
+function getDateString(date) {
+    date = date || new Date();
+    let day = date.getDate();
+    let year = date.getFullYear();
+    let month = (date.getMonth() + 1);
+
+    return `${year}-${month}-${day}`;
+}
+
 function countFiles(arr) {
     var count = 0;
     arr.forEach(f => {
@@ -74,6 +83,32 @@ function getFolderSize(path, chkSubdir, callback) {
         } else {
             callback(null, countFiles(arr))
         }
+    });
+}
+
+function moveFile(nameFile, oldPath, newPath, callback) {
+
+    let oldPathFile = pathLib.join(oldPath, nameFile + extension);
+    let newPathFile = pathLib.join(newPath, nameFile + extension);
+
+    fs.rename(oldPathFile, newPathFile, (err) => {
+        if (err) {
+            mkdirp(newPath, (err) => {
+                if (err) {
+                    callback(err);
+                    return;
+                }
+
+                fs.rename(oldPathFile, newPathFile, (err) => {
+                    if (err) {
+                        callback(err);
+                        return;
+                    }
+                    callback(err);
+                });
+            });
+        }
+        callback(err);
     });
 }
 
@@ -231,127 +266,32 @@ class FileSystem extends EventEmitter {
         });
     }
 
-    doneMessage(obj, callback) {
+    doneMessage(fileName, callback) {
 
-        var date = new Date(Date.now());
+        let oldPath = pathLib.join(this.uriQueue);
+        let newPath = pathLib.join(this.uriDone, getDateString());
 
-        var day = date.getDate();
-        var year = date.getFullYear();
-        var month = (date.getMonth() + 1);
-
-        const uri = pathLib.join(this.path, queueFolder, obj + extension);
-        const baseNewUri = pathLib.join(this.path, doneFolder, year + "-" + month + "-" + day);
-        const newUri = pathLib.join(baseNewUri, obj + extension);
-
-        const uriBase = pathLib.join(this.path);
-        const uriDone = pathLib.join(uriBase, doneFolder);
-
-        var error = null;
-        var results = null;
-
-        this.checkDir(uriDone, (err, res) => {
-            if (!err) {
-                moveDone();
+        moveFile(fileName, oldPath, newPath, (err) => {
+            if(err){
+                callback(err);
+                return;
             }
+            callback(err);
         });
-
-        function moveDone() {
-            fs.stat(baseNewUri, (err, stats) => {
-                error = err;
-
-                if (!err) {
-                    if (stats.isDirectory()) {
-                        fs.rename(uri, newUri, (err) => {
-                            error = err;
-                            if (!err) {
-                                results = true;
-                                callback(error, results);
-                            } else {
-                                results = false;
-                                callback(error, results);
-                            }
-                        });
-                    }
-                } else {
-                    fs.mkdir(baseNewUri, (err) => {
-                        error = err;
-                        if (!err) {
-                            fs.rename(uri, newUri, (err) => {
-                                error = err;
-                                if (!err) {
-                                    results = true;
-                                    callback(error, results);
-                                } else {
-                                    results = false;
-                                    callback(error, results);
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-        }
     }
 
-    errorMessage(keyMessage, callback) {
+    errorMessage(fileName, callback) {
 
-        var date = new Date(Date.now());
+        let oldPath = pathLib.join(this.uriQueue);
+        let newPath = pathLib.join(this.uriError, getDateString());
 
-        var day = date.getDate();
-        var year = date.getFullYear();
-        var month = (date.getMonth() + 1);
-
-        const uriBase = pathLib.join(this.path);
-        const uriError = pathLib.join(uriBase, errorFolder);
-        const uri = pathLib.join(uriBase, queueFolder, keyMessage + extension);
-        const baseNewUri = pathLib.join(uriError, year + "-" + month + "-" + day);
-        const newUriFile = pathLib.join(baseNewUri, keyMessage + extension);
-
-        var error = null;
-        var results = null;
-
-        this.checkDir(uriError, (err, res) => {
-            if (!err) {
-                moveError();
+        moveFile(fileName, oldPath, newPath, (err) => {
+            if(err){
+                callback(err);
+                return;
             }
+            callback(err);
         });
-
-        function moveError() {
-            fs.stat(baseNewUri, (err, stats) => {
-                error = err;
-
-                if (!err) {
-                    if (stats.isDirectory()) {
-                        fs.rename(uri, newUriFile, (err) => {
-                            error = err;
-                            if (!err) {
-                                results = true;
-                                callback(error, results);
-                            } else {
-                                results = false;
-                                callback(error, results);
-                            }
-                        });
-                    }
-                } else {
-                    fs.mkdir(baseNewUri, (err) => {
-                        error = err;
-                        if (!err) {
-                            fs.rename(uri, newUriFile, (err) => {
-                                error = err;
-                                if (!err) {
-                                    results = true;
-                                    callback(error, results);
-                                } else {
-                                    results = false;
-                                    callback(error, results);
-                                }
-                            });
-                        }
-                    });
-                }
-            });
-        }
     }
 
     incompatibleFile(fileName, callback) {
