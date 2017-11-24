@@ -33,10 +33,22 @@ limitations under the License.
         </label>
         <input type="text" id="node-input-config" data-i18n="[placeholder]safe-queue.label.config">
     </div>
+
+
+
+
+
+
 </script>
 
 <script type="text/x-red" data-help-name="queue in">
     <p>SafeQueue In</p>
+
+
+
+
+
+
 </script>
 
 <script type="text/javascript">
@@ -55,22 +67,23 @@ limitations under the License.
         inputs: 1,
         outputs: 1,
         icon: "file.png",
-        paletteLabel : "queue in",
+        paletteLabel: "queue in",
         label: function () {
 
             if (this.name) {
                 return this.name;
-            } else {
-
-                var defaultName = this._("safe-queue.in.define.name")
-                var selectConfig = RED.nodes.node(this.config);
-
-                var newName = defaultName + " / " + selectConfig.label();
-
-                return newName;
             }
-        },labelStyle: function() {
-                return this.name?"node_label_italic":"";
+
+            var name = this._("safe-queue.in.define.name")
+            var selectConfig = RED.nodes.node(this.config);
+
+            if (selectConfig) {
+                name = selectConfig.label() + ": " + name;
+            }
+
+            return name;
+        }, labelStyle: function () {
+            return this.name ? "node_label_italic" : "";
         },
         oneditprepare: function () {
             var self = this;
@@ -109,12 +122,24 @@ limitations under the License.
         <input type="text" id="node-input-config" data-i18n="[placeholder]safe-queue.label.config">
     </div>
 
+
+
+
+
+
+
 </script>
 
 <script type="text/x-red" data-help-name="queue out">
     <p>SafeQueue Out</p>
     <p>msg.id : Chave única de identificação da mensagem, usado pelo "SafeQueue ACK" </p>
     <p>msg.payload : Mensagem transmitida </p>
+
+
+
+
+
+
 </script>
 
 <script type="text/javascript">
@@ -137,17 +162,18 @@ limitations under the License.
 
             if (this.name) {
                 return this.name;
-            } else {
-
-                var defaultName = this._("safe-queue.out.define.name")
-                var selectConfig = RED.nodes.node(this.config);
-
-                var newName = defaultName + " / " + selectConfig.label();
-
-                return newName;
             }
-        },labelStyle: function() {
-            return this.name?"node_label_italic":"";
+
+            var name = this._("safe-queue.out.define.name")
+            var selectConfig = RED.nodes.node(this.config);
+
+            if (selectConfig) {
+                name = selectConfig.label() + ": " + name;
+            }
+
+            return name;
+        }, labelStyle: function () {
+            return this.name ? "node_label_italic" : "";
         },
         oneditprepare: function () {
             var self = this;
@@ -205,10 +231,22 @@ limitations under the License.
         </select>
     </div>
 
+
+
+
+
+
+
 </script>
 
 <script type="text/x-red" data-help-name="queue control">
     <p>SafeQueue Control</p>
+
+
+
+
+
+
 </script>
 
 <script type="text/javascript">
@@ -224,7 +262,7 @@ limitations under the License.
                 type: "queue config"
             },
             operation: {
-                value: ""
+                value: "queue-size"
             }
         },
         inputs: 1,
@@ -235,17 +273,20 @@ limitations under the License.
 
             if (this.name) {
                 return this.name;
-            } else {
-
-                var selectOperation = this.operation;
-                var selectConfig = RED.nodes.node(this.config);
-
-                var newName = selectOperation + " / " + selectConfig.label();
-
-                return newName;
             }
-        },labelStyle: function() {
-            return this.name?"node_label_italic":"";
+
+            var selectOperation = this.operation;
+            var selectConfig = RED.nodes.node(this.config);
+
+            if (selectConfig) {
+                selectOperation = selectConfig.label() + ": " + selectOperation;
+            }
+
+            return selectOperation;
+
+        },
+        labelStyle: function () {
+            return this.name ? "node_label_italic" : "";
         },
         oneditprepare: function () {
             var self = this;
@@ -261,7 +302,8 @@ limitations under the License.
             });
             updateVarList(self.config);
         }
-    });
+    })
+    ;
 </script>
 
 <!-- ------------- SafeQueue Acknowledge (queue ack) ------------ -->
@@ -284,12 +326,24 @@ limitations under the License.
         <input type="text" id="node-input-config" data-i18n="[placeholder]safe-queue.label.config">
     </div>
 
+
+
+
+
+
+
 </script>
 
 <script type="text/x-red" data-help-name="queue ack">
     <p>SafeQueue Acknowledge</p>
     <p>Para confirmação do envio da mensagem esse nó precisa receber no msg.id : a chave única de identificação da mensagem
         enviada pelo "SafeQueue OUT" no campo msg.id</p>
+
+
+
+
+
+
 </script>
 
 <script type="text/javascript">
@@ -309,21 +363,22 @@ limitations under the License.
         icon: "alert.png",
         align: 'right',
         paletteLabel: "queue ack",
-        label:  function () {
+        label: function () {
 
             if (this.name) {
                 return this.name;
-            } else {
-
-                var defaultName = this._("safe-queue.out.define.name")
-                var selectConfig = RED.nodes.node(this.config);
-
-                var newName = defaultName + " / " + selectConfig.label();
-
-                return newName;
             }
-        },labelStyle: function() {
-            return this.name?"node_label_italic":"";
+
+            var name = this._("safe-queue.ack.define.name")
+            var selectConfig = RED.nodes.node(this.config);
+
+            if (selectConfig) {
+                name = selectConfig.label() + ": " + name;
+            }
+
+            return name;
+        }, labelStyle: function () {
+            return this.name ? "node_label_italic" : "";
         },
         oneditprepare: function () {
             var self = this;
@@ -419,10 +474,22 @@ limitations under the License.
     </div>
 
 
+
+
+
+
+
+
 </script>
 
 <script type="text/x-red" data-help-name="queue config">
     <p>SafeQueue Config</p>
+
+
+
+
+
+
 </script>
 
 <script type="text/javascript">
