@@ -10,10 +10,10 @@ You can install this node directly from the "Manage Palette" menu in the Node-RE
 
 How to use
 -----------
-![FlowExample](https://github.com/netsmarttech/node-red-contrib-safe-queue/tree/master/example/flow_example.png)
+<img src="https://github.com/netsmarttech/node-red-contrib-safe-queue/blob/master/example/flow_example.png" />
 
 #### Configure the Safe Queue config
-![ConfigExample](https://github.com/netsmarttech/node-red-contrib-safe-queue/tree/master/example/config_example.png)
+<img src="https://github.com/netsmarttech/node-red-contrib-safe-queue/tree/master/example/config_example.png" />
 
 License
 -----------
