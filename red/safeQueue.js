@@ -54,7 +54,7 @@ module.exports = function (RED) {
 
         RED.nodes.createNode(this, config);
 
-        this.storage.on('newFile', () => {
+        this.storage.on('newMessage', () => {
             node.proccessQueue();
         });
 

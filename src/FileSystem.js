@@ -229,7 +229,7 @@ class FileSystem extends EventEmitter {
 
     onChange(eventType, fileName) {
         if (eventType == 'change') {
-            this.emit('newFile');
+            this.emit('newMessage');
         }
     }
 
