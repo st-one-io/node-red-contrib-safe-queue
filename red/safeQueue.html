@@ -128,7 +128,6 @@ limitations under the License.
                 type: "queue config"
             }
         },
-        inputs: 1,
         outputs: 1,
         icon: "file.png",
         paletteLabel: "queue out",
@@ -303,8 +302,19 @@ limitations under the License.
         inputs: 1,
         icon: "alert.png",
         paletteLabel: "queue ack",
-        label: function () {
-            return this.name || this._("safe-queue.ack.define.name");
+        label:  function () {
+
+            if (this.name) {
+                return this.name;
+            } else {
+
+                var defaultName = this._("safe-queue.out.define.name")
+                var selectConfig = RED.nodes.node(this.config);
+
+                var newName = defaultName + " / " + selectConfig.label();
+
+                return newName;
+            }
         },
         oneditprepare: function () {
             var self = this;
