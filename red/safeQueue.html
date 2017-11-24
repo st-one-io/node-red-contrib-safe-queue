@@ -84,20 +84,6 @@ limitations under the License.
             return name;
         }, labelStyle: function () {
             return this.name ? "node_label_italic" : "";
-        },
-        oneditprepare: function () {
-            var self = this;
-            var configList = $("#node-input-config");
-
-            function updateVarList(configId) {
-                var configNode = RED.nodes.node(configId);
-                if (!configNode) return;
-            }
-
-            configList.change(function () {
-                updateVarList(configList.val());
-            });
-            updateVarList(self.config);
         }
     });
 </script>
@@ -174,20 +160,6 @@ limitations under the License.
             return name;
         }, labelStyle: function () {
             return this.name ? "node_label_italic" : "";
-        },
-        oneditprepare: function () {
-            var self = this;
-            var configList = $("#node-input-config");
-
-            function updateVarList(configId) {
-                var configNode = RED.nodes.node(configId);
-                if (!configNode) return;
-            }
-
-            configList.change(function () {
-                updateVarList(configList.val());
-            });
-            updateVarList(self.config);
         }
     });
 </script>
@@ -287,20 +259,6 @@ limitations under the License.
         },
         labelStyle: function () {
             return this.name ? "node_label_italic" : "";
-        },
-        oneditprepare: function () {
-            var self = this;
-            var configList = $("#node-input-control");
-
-            function updateVarList(configId) {
-                var configNode = RED.nodes.node(configId);
-                if (!configNode) return;
-            }
-
-            configList.change(function () {
-                updateVarList(configList.val());
-            });
-            updateVarList(self.config);
         }
     })
     ;
@@ -379,20 +337,6 @@ limitations under the License.
             return name;
         }, labelStyle: function () {
             return this.name ? "node_label_italic" : "";
-        },
-        oneditprepare: function () {
-            var self = this;
-            var configList = $("#node-input-config");
-
-            function updateVarList(configId) {
-                var configNode = RED.nodes.node(configId);
-                if (!configNode) return;
-            }
-
-            configList.change(function () {
-                updateVarList(configList.val());
-            });
-            updateVarList(self.config);
         }
     });
 </script>
@@ -507,24 +451,6 @@ limitations under the License.
             path: {
                 value: "",
                 required: true
-                /*
-                validate: function (text) {
-                    var patt = new RegExp(/[\\/?%*:|\"<>]/);
-                    return !patt.test(text);
-                }
-                */
-            },
-            urlDataBase: {
-                value: ""
-            },
-            portDataBase: {
-                value: ""
-            },
-            userDataBase: {
-                value: ""
-            },
-            passwordDataBase: {
-                value: ""
             },
             timeoutAck: {
                 value: "1000",
@@ -543,12 +469,6 @@ limitations under the License.
             var fsRow = $('#node-config-queue-config-mode-fs');
             var dbRow = $('#node-config-queue-config-mode-db');
 
-            if (self.storage === undefined) {
-                //default for old configurations
-                console.log('change connmode default');
-                self.storage = 'fs'
-                storageMode.val(self.storage);
-            }
             storageMode.change(function () {
                 if (storageMode.val() == "fs") {
                     fsRow.show();
