@@ -13,7 +13,7 @@ How to use
 <img src="https://github.com/netsmarttech/node-red-contrib-safe-queue/blob/master/example/flow_example.png" />
 
 #### Configure the Safe Queue config
-<img src="https://github.com/netsmarttech/node-red-contrib-safe-queue/tree/master/example/config_example.png" />
+<img src="https://github.com/netsmarttech/node-red-contrib-safe-queue/blob/master/example/config_example.png" />
 
 License
 -----------
