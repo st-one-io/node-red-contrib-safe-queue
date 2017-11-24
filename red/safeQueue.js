@@ -41,16 +41,16 @@ module.exports = function (RED) {
             this.timeOut = 1000;
         }
 
-        let path = null || config.path;
-
         this.storageMode = config.storage;
 
-        let infoPath = {'path': path};
+        let infoPath = {'path': config.path};
 
         if (this.storageMode == 'fs') {
             this.storage = new FileSystem(infoPath);
+        }else{
+            node.error("Error in node configuration.");
+            return;
         }
-
 
         RED.nodes.createNode(this, config);
 
