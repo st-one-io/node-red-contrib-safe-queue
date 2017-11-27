@@ -116,11 +116,11 @@ function moveFile(nameFile, extensionFile, oldPath, newPath, callback) {
                         callback(err);
                         return;
                     }
-                    callback(err);
+                    callback(null);
                 });
             });
         }
-        callback(err);
+        callback(null);
     });
 }
 
@@ -253,7 +253,7 @@ class FileSystem extends EventEmitter {
     //--> CONTROL FILES
     saveMessage(obj, callback) {
 
-        var uriFile = pathLib.join(this.uriQueue, obj._msgid + extension);
+        var uriFile = pathLib.join(this.uriQueue, obj.keyMessage + extension);
 
         fs.writeFile(uriFile, JSON.stringify(obj), {flags: 'rs+'}, (err) => {
             if (err) {
