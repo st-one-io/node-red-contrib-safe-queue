@@ -28,8 +28,8 @@
         "config": {
             "label": {
                 "storage": "Storage type",
-                "timeout-ack": "Timeout ACK"
-
+                "timeout-ack": "Timeout ACK",
+                "start-job": "Start job at start?"
             },
             "define": {
                 "name": "queue config"

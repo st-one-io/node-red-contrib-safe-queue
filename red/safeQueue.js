@@ -31,6 +31,7 @@ module.exports = function (RED) {
         this.messageProccess = new Map();
 
         this.stopProccess = false;
+        this.initProccess = false;
 
         this.timeOut = config.timeoutAck;
 
@@ -39,6 +40,9 @@ module.exports = function (RED) {
         }
 
         this.storageMode = config.storage;
+
+
+        this.autoStartJob = config.startJob;
 
         let infoPath = {'path': config.path};
 
@@ -60,20 +64,24 @@ module.exports = function (RED) {
                 return;
             }
 
-            node.startMessages();
+            if (this.autoStartJob) {
+                node.startMessages();
+            }
 
         });
 
         node.startMessages = function startMessages() {
 
-            if(node.virtualQueue.size > 0){
+            node.initProccess = true;
+
+            if (node.virtualQueue.size > 0) {
                 for (var key of node.virtualQueue.keys()) {
                     node.virtualQueue.delete(key);
                 }
             }
 
-            if(node.messageProccess.size > 0){
-                for(var key of node.messageProccess.keys()){
+            if (node.messageProccess.size > 0) {
+                for (var key of node.messageProccess.keys()) {
                     node.messageProccess.delete(key);
                 }
             }
@@ -110,6 +118,11 @@ module.exports = function (RED) {
 
         //---> Functions <---
         node.receiveMessage = function receiveMessage(message, callback) {
+
+            if(!node.initProccess){
+                node.startMessages();
+            }
+
             let itemQueue = {};
             itemQueue.keyMessage = message._msgid;
             itemQueue.inProccess = false;
@@ -319,8 +332,6 @@ module.exports = function (RED) {
                     shape: "dot",
                     text: "done"
                 });
-
-
             });
         });
     }
@@ -502,7 +513,7 @@ module.exports = function (RED) {
 
                 node.config.stopProccess = false;
 
-                node.config.listNodeOut.forEach(out =>{
+                node.config.listNodeOut.forEach(out => {
                     out.setOutFree();
                 });
 

@@ -33,22 +33,10 @@ limitations under the License.
         </label>
         <input type="text" id="node-input-config" data-i18n="[placeholder]safe-queue.label.config">
     </div>
-
-
-
-
-
-
 </script>
 
 <script type="text/x-red" data-help-name="queue in">
     <p>SafeQueue In</p>
-
-
-
-
-
-
 </script>
 
 <script type="text/javascript">
@@ -107,25 +95,12 @@ limitations under the License.
         </label>
         <input type="text" id="node-input-config" data-i18n="[placeholder]safe-queue.label.config">
     </div>
-
-
-
-
-
-
-
 </script>
 
 <script type="text/x-red" data-help-name="queue out">
     <p>SafeQueue Out</p>
     <p>msg.id : Chave única de identificação da mensagem, usado pelo "SafeQueue ACK" </p>
     <p>msg.payload : Mensagem transmitida </p>
-
-
-
-
-
-
 </script>
 
 <script type="text/javascript">
@@ -202,23 +177,10 @@ limitations under the License.
             
         </select>
     </div>
-
-
-
-
-
-
-
 </script>
 
 <script type="text/x-red" data-help-name="queue control">
     <p>SafeQueue Control</p>
-
-
-
-
-
-
 </script>
 
 <script type="text/javascript">
@@ -283,25 +245,12 @@ limitations under the License.
         </label>
         <input type="text" id="node-input-config" data-i18n="[placeholder]safe-queue.label.config">
     </div>
-
-
-
-
-
-
-
 </script>
 
 <script type="text/x-red" data-help-name="queue ack">
     <p>SafeQueue Acknowledge</p>
     <p>Para confirmação do envio da mensagem esse nó precisa receber no msg.id : a chave única de identificação da mensagem
         enviada pelo "SafeQueue OUT" no campo msg.id</p>
-
-
-
-
-
-
 </script>
 
 <script type="text/javascript">
@@ -414,26 +363,18 @@ limitations under the License.
             <i class="fa fa-tag"></i>
             <span data-i18n="safe-queue.config.label.timeout-ack"></span>
         </label>
-        <input type="text" id="node-config-input-timeoutAck" data-i18n="[placeholder]safe-queue.config.label.timeout-ack">
+        <input type="number" id="node-config-input-timeoutAck" min="0"> ms
     </div>
 
-
-
-
-
-
-
-
+	<div class="form-row">
+		<label>&nbsp;</label>
+		<input type="checkbox" id="node-config-input-startJob" style="display: inline-block; width: auto; vertical-align: top;">
+		<label for="node-config-input-startJob" style="width:70%;"><span data-i18n="safe-queue.config.label.start-job"></span></label>
+	</div>
 </script>
 
 <script type="text/x-red" data-help-name="queue config">
     <p>SafeQueue Config</p>
-
-
-
-
-
-
 </script>
 
 <script type="text/javascript">
@@ -455,6 +396,9 @@ limitations under the License.
             timeoutAck: {
                 value: "1000",
                 validate: RED.validators.number()
+            },
+            startJob:{
+                value: true
             }
 
         },
