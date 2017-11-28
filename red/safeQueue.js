@@ -273,8 +273,8 @@ module.exports = function (RED) {
             this.storage.deleteError(days, callback);
         }
 
-        node.resendErrors = function resendErrors(callback) {
-            this.storage.resendErrors(callback);
+        node.resendErrors = function resendErrors(days, callback) {
+            this.storage.resendErrors(days, callback);
         }
 
         node.getQueueSize = function getQueueSize(callback) {

@@ -18,7 +18,8 @@
         },
         "control": {
             "label": {
-                "operation": "Operation"
+                "operation": "Operation",
+                "days": "Days"
 
             },
             "define": {
