@@ -397,8 +397,6 @@ module.exports = function (RED) {
 
         node.on('input', function (msg) {
 
-            //console.log(values.operation);
-
             var operation = values.operation;
 
             if (operation === 'queue-size') {
@@ -522,6 +520,7 @@ module.exports = function (RED) {
                 msg.payload = "Stop Outputs";
                 node.send(msg);
             }
+
         });
     }
 

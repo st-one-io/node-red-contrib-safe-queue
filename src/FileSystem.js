@@ -163,6 +163,17 @@ function deleteFilesDir(pathDir, callback) {
     });
 }
 
+function subtractDate(days, date) {
+    var newDate = new Date(date);
+
+    var days = days * 24 * 60 * 60 * 1000;
+
+    newDate = new Date(newDate.getTime() - days);
+
+    return newDate;
+}
+
+
 class FileSystem extends EventEmitter {
 
     constructor(obj) {
@@ -446,7 +457,7 @@ class FileSystem extends EventEmitter {
 
         if (days > 0) {
 
-            let dateLastDir = moment().subtract(days, 'days');
+            let dateLastDir = moment(subtractDate(days, new Date()));
 
             fs.readdir(this.uriError, 'utf-8', (err, dirs) => {
                 if (err) {
@@ -591,7 +602,7 @@ class FileSystem extends EventEmitter {
 
         if (days > 0) {
 
-            let dateLastDir = moment().subtract(days, 'days');
+            let dateLastDir = moment(subtractDate(days, new Date()));
 
             fs.readdir(this.uriDone, 'utf-8', (err, dirs) => {
                 if (err) {
@@ -682,7 +693,7 @@ class FileSystem extends EventEmitter {
 
         if (days > 0) {
 
-            let dateLastDir = moment().subtract(days, 'days');
+            let dateLastDir = moment(subtractDate(days, new Date()));
 
             fs.readdir(this.uriError, 'utf-8', (err, dirs) => {
                 if (err) {
