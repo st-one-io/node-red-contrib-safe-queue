@@ -119,7 +119,7 @@ module.exports = function (RED) {
         //---> Functions <---
         node.receiveMessage = function receiveMessage(message, callback) {
 
-            if(!node.initProccess){
+            if (!node.initProccess) {
                 node.startMessages();
             }
 
@@ -389,6 +389,8 @@ module.exports = function (RED) {
 
         var node = this;
 
+        this.days = values.days;
+
         RED.nodes.createNode(this, values);
 
         node.config = RED.nodes.getNode(values.config);
@@ -466,7 +468,7 @@ module.exports = function (RED) {
             }
 
             if (operation === 'delete-error') {
-                node.config.deleteError(null, (err) => {
+                node.config.deleteError(this.days, (err) => {
                     if (err) {
                         node.error(err);
                         return;
@@ -478,7 +480,7 @@ module.exports = function (RED) {
             }
 
             if (operation === 'delete-done') {
-                node.config.deleteDone(null, (err, results) => {
+                node.config.deleteDone(this.days, (err, results) => {
                     if (err) {
                         node.error(err);
                         return;
@@ -490,23 +492,12 @@ module.exports = function (RED) {
             }
 
             if (operation === 'resend-errors') {
-
-                if (node.config.getStopProccess()) {
-                    node.config.resendErrors(function (err, results) {
-                        msg.payload = results;
-
-                        if (err) {
-                            node.error(err);
-                        } else {
-                            node.config.init();
-                        }
-                        node.send(msg);
-                    });
-                } else {
-                    msg.payload = "Process is not stopped";
-                    node.warn("resendErrors - Process is not stopped");
-                    node.send(msg);
-                }
+                node.config.resendErrors(this.days, (err) =>{
+                    if(err){
+                        return;
+                    }
+                    node.config.startMessages();
+                });
             }
 
             if (operation === 'start-proccess') {
