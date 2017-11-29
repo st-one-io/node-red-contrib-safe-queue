@@ -62,8 +62,8 @@
       "resend-errors": "Resend errors",
       "done-size": "Done size",
       "error-size": "Error size",
-      "start-proccess": "Start proccess",
-      "stop-proccess": "Stop proccess"
+      "start-process": "Start process",
+      "stop-process": "Stop process"
     },
     "message-errors": {
       "error-node-config": "no configuration node setted"

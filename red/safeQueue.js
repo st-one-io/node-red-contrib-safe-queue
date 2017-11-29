@@ -28,10 +28,10 @@ module.exports = function (RED) {
         this.listNodeOut = [];
 
         this.virtualQueue = new Map();
-        this.messageProccess = new Map();
+        this.messageProcess = new Map();
 
-        this.stopProccess = false;
-        this.initProccess = false;
+        this.stopProcess = false;
+        this.initProcess = false;
 
         this.timeOut = config.timeoutAck;
 
@@ -55,7 +55,7 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, config);
 
         this.storage.on('newMessage', () => {
-            node.proccessQueue();
+            node.processQueue();
         });
 
         this.storage.init((err) => {
@@ -71,7 +71,7 @@ module.exports = function (RED) {
 
         node.startMessages = function startMessages() {
 
-            node.initProccess = true;
+            node.initProcess = true;
 
             if (node.virtualQueue.size > 0) {
                 for (var key of node.virtualQueue.keys()) {
@@ -79,9 +79,9 @@ module.exports = function (RED) {
                 }
             }
 
-            if (node.messageProccess.size > 0) {
-                for (var key of node.messageProccess.keys()) {
-                    node.messageProccess.delete(key);
+            if (node.messageProcess.size > 0) {
+                for (var key of node.messageProcess.keys()) {
+                    node.messageProcess.delete(key);
                 }
             }
 
@@ -98,7 +98,7 @@ module.exports = function (RED) {
 
                         let itemQueue = {};
                         itemQueue.keyMessage = data.keyMessage;
-                        itemQueue.inProccess = false;
+                        itemQueue.inProcess = false;
                         itemQueue.nodeOut = null;
                         itemQueue.timer = null;
 
@@ -107,9 +107,9 @@ module.exports = function (RED) {
                         itemMessage.message = data.message;
 
                         this.virtualQueue.set(itemQueue.keyMessage, itemQueue);
-                        this.messageProccess.set(itemMessage.keyMessage, itemMessage);
+                        this.messageProcess.set(itemMessage.keyMessage, itemMessage);
 
-                        node.proccessQueue();
+                        node.processQueue();
                     });
                 });
             });
@@ -119,7 +119,7 @@ module.exports = function (RED) {
         node.receiveMessage = function receiveMessage(message, callback) {
             let itemQueue = {};
             itemQueue.keyMessage = message._msgid;
-            itemQueue.inProccess = false;
+            itemQueue.inProcess = false;
             itemQueue.nodeOut = null;
             itemQueue.timer = null;
 
@@ -128,14 +128,14 @@ module.exports = function (RED) {
             itemMessage.message = message;
 
             this.virtualQueue.set(itemQueue.keyMessage, itemQueue);
-            this.messageProccess.set(itemMessage.keyMessage, itemMessage);
+            this.messageProcess.set(itemMessage.keyMessage, itemMessage);
 
             this.storage.saveMessage(itemMessage, (err) => {
                 callback(err);
             });
         }
 
-        node.proccessQueue = function proccessQueue() {
+        node.processQueue = function processQueue() {
 
             var nodeOut = node.getNodeOut();
 
@@ -143,7 +143,7 @@ module.exports = function (RED) {
                 return;
             }
 
-            var keyItemQueue = node.getMessageProccess();
+            var keyItemQueue = node.getMessageProcess();
 
             if (keyItemQueue == null) {
                 return;
@@ -151,7 +151,7 @@ module.exports = function (RED) {
 
             let itemQueue = this.virtualQueue.get(keyItemQueue);
 
-            itemQueue.inProccess = true;
+            itemQueue.inProcess = true;
             itemQueue.nodeOut = nodeOut;
 
             this.virtualQueue.set(itemQueue.keyMessage, itemQueue);
@@ -159,10 +159,10 @@ module.exports = function (RED) {
             let message = {};
 
             itemQueue.timer = setTimeout(node.onError, this.timeOut, itemQueue.keyMessage);
-            nodeOut.setOutInProccess();
+            nodeOut.setOutInProcess();
 
-            if (this.messageProccess.has(itemQueue.keyMessage)) {
-                message = this.messageProccess.get(itemQueue.keyMessage);
+            if (this.messageProcess.has(itemQueue.keyMessage)) {
+                message = this.messageProcess.get(itemQueue.keyMessage);
                 nodeOut.sendMessage(message.message);
             } else {
                 this.storage.getMessage(itemQueue.keyMessage, (err, data) => {
@@ -174,7 +174,7 @@ module.exports = function (RED) {
                     itemMessage.keyMessage = message._msgid;
                     itemMessage.message = message.message;
 
-                    this.messageProccess.set(itemMessage.keyMessage, itemMessage);
+                    this.messageProcess.set(itemMessage.keyMessage, itemMessage);
 
                     message = data;
                     nodeOut.sendMessage(message.message);
@@ -184,26 +184,26 @@ module.exports = function (RED) {
 
         node.getNodeOut = function getNodeOut() {
 
-            //Fuction set stop outputs and return null for stop proccessQueue()
-            if (node.stopProccess) {
+            //Fuction set stop outputs and return null for stop processQueue()
+            if (node.stopProcess) {
                 this.listNodeOut.forEach(out => {
-                    if (!out.outInProccess) {
-                        out.setOutStopProccess();
+                    if (!out.outInProcess) {
+                        out.setOutStopProcess();
                     }
                 });
                 return null;
             }
 
             return this.listNodeOut.find(out => {
-                if (!out.outInProccess) {
+                if (!out.outInProcess) {
                     return out;
                 }
             });
         }
 
-        node.getMessageProccess = function getMessageProccess() {
+        node.getMessageProcess = function getMessageProcess() {
             for (var [key, value] of this.virtualQueue.entries()) {
-                if (!value.inProccess) {
+                if (!value.inProcess) {
                     return key;
                 }
             }
@@ -214,16 +214,16 @@ module.exports = function (RED) {
 
             let itemQueue = node.virtualQueue.get(keyMessage);
 
-            node.warn(`Fail to proccess message ${itemQueue.keyMessage}`);
+            node.warn(`Fail to process message ${itemQueue.keyMessage}`);
 
             itemQueue.nodeOut.setOutFree();
             clearTimeout(itemQueue.timer);
 
-            if (node.stopProccess) {
-                itemQueue.nodeOut.setOutStopProccess();
+            if (node.stopProcess) {
+                itemQueue.nodeOut.setOutStopProcess();
             }
 
-            node.messageProccess.delete(itemQueue.keyMessage);
+            node.messageProcess.delete(itemQueue.keyMessage);
             node.virtualQueue.delete(itemQueue.keyMessage);
 
             node.storage.errorMessage(itemQueue.keyMessage, (err) => {
@@ -231,7 +231,7 @@ module.exports = function (RED) {
                     node.error(err);
                 }
 
-                node.proccessQueue();
+                node.processQueue();
 
             });
         }
@@ -243,17 +243,17 @@ module.exports = function (RED) {
             itemQueue.nodeOut.setOutFree();
             clearTimeout(itemQueue.timer);
 
-            if (node.stopProccess) {
-                itemQueue.nodeOut.setOutStopProccess();
+            if (node.stopProcess) {
+                itemQueue.nodeOut.setOutStopProcess();
             }
-            node.messageProccess.delete(itemQueue.keyMessage);
+            node.messageProcess.delete(itemQueue.keyMessage);
             node.virtualQueue.delete(itemQueue.keyMessage);
 
             node.storage.doneMessage(itemQueue.keyMessage, (err) => {
                 if (err) {
                     node.error(err);
                 }
-                node.proccessQueue();
+                node.processQueue();
             });
         }
 
@@ -344,7 +344,7 @@ module.exports = function (RED) {
 
         var node = this;
 
-        this.outInProccess = false;
+        this.outInProcess = false;
 
         RED.nodes.createNode(this, values);
 
@@ -357,25 +357,25 @@ module.exports = function (RED) {
 
         node.config.registerOut(node);
 
-        node.setOutStopProccess = function setOutStopProccess() {
+        node.setOutStopProcess = function setOutStopProcess() {
             node.status({
                 fill: "yellow",
                 shape: "dot",
-                text: "stop proccess"
+                text: "stop process"
             });
         }
 
-        node.setOutInProccess = function setOutInProccess() {
-            this.outInProccess = true;
+        node.setOutInProcess = function setOutInProcess() {
+            this.outInProcess = true;
             node.status({
                 fill: "blue",
                 shape: "dot",
-                text: "proccess"
+                text: "process"
             });
         }
 
         node.setOutFree = function setOutFree() {
-            this.outInProccess = false;
+            this.outInProcess = false;
             node.status({
                 fill: "green",
                 shape: "dot",
@@ -514,8 +514,8 @@ module.exports = function (RED) {
                     break;
 
                 //TODO VERIFICAR CASOS DE STOP -> START
-                case 'start-proccess':
-                    node.config.stopProccess = false;
+                case 'start-process':
+                    node.config.stopProcess = false;
 
                     node.config.listNodeOut.forEach(out => {
                         out.setOutFree();
@@ -523,14 +523,14 @@ module.exports = function (RED) {
 
                     node.config.startMessages();
 
-                    node.log("Start proccess");
+                    node.log("Start process");
 
                     node.send(msg);
 
                     break;
 
-                case 'stop-proccess':
-                    node.config.stopProccess = true;
+                case 'stop-process':
+                    node.config.stopProcess = true;
 
                     node.log("Stop Outputs");
 
@@ -550,6 +550,11 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, values);
 
         node.config = RED.nodes.getNode(values.config);
+
+        if (!node.config) {
+            node.error(RED._("safe-queue.message-errors.error-node-config"));
+            return;
+        }
 
         node.on('input', function (msg) {
             if (msg.error) {
