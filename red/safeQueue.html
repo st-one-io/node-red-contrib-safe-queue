@@ -33,10 +33,18 @@ limitations under the License.
         </label>
         <input type="text" id="node-input-config" data-i18n="[placeholder]safe-queue.label.config">
     </div>
+
+    <div class="form-row">
+		<label>&nbsp;</label>
+		<input type="checkbox" id="node-input-sendError" style="display: inline-block; width: auto; vertical-align: top;">
+		<label for="node-input-sendError" style="width:70%;"><span data-i18n="safe-queue.in.label.send-error"></span></label>
+	</div>
+
 </script>
 
 <script type="text/x-red" data-help-name="queue in">
     <p>SafeQueue In</p>
+
 </script>
 
 <script type="text/javascript">
@@ -50,6 +58,9 @@ limitations under the License.
             config: {
                 value: "",
                 type: "queue config"
+            },
+            sendError:{
+                value: true
             }
         },
         inputs: 1,
@@ -95,12 +106,14 @@ limitations under the License.
         </label>
         <input type="text" id="node-input-config" data-i18n="[placeholder]safe-queue.label.config">
     </div>
+
 </script>
 
 <script type="text/x-red" data-help-name="queue out">
     <p>SafeQueue Out</p>
     <p>msg.id : Chave única de identificação da mensagem, usado pelo "SafeQueue ACK" </p>
     <p>msg.payload : Mensagem transmitida </p>
+
 </script>
 
 <script type="text/javascript">
@@ -187,10 +200,12 @@ limitations under the License.
         </div>
     </div>
 
+
 </script>
 
 <script type="text/x-red" data-help-name="queue control">
     <p>SafeQueue Control</p>
+
 </script>
 
 <script type="text/javascript">
@@ -208,7 +223,7 @@ limitations under the License.
             operation: {
                 value: "queue-size"
             },
-            days:{
+            days: {
                 value: 0
             }
         },
@@ -237,20 +252,20 @@ limitations under the License.
         },
         oneditprepare: function () {
 
-        var self = this;
+            var self = this;
 
-        var operation = $('#node-input-operation');
-        var daysRow = $('#node-config-days');
+            var operation = $('#node-input-operation');
+            var daysRow = $('#node-config-days');
 
-        operation.change(function () {
-            if (operation.val() == "delete-error" || operation.val() == "delete-done" || operation.val() == "resend-errors") {
-                daysRow.show();
-            } else {
-                daysRow.hide();
-            }
-        });
-        operation.change();
-    }
+            operation.change(function () {
+                if (operation.val() == "delete-error" || operation.val() == "delete-done" || operation.val() == "resend-errors") {
+                    daysRow.show();
+                } else {
+                    daysRow.hide();
+                }
+            });
+            operation.change();
+        }
     });
 </script>
 
@@ -273,12 +288,14 @@ limitations under the License.
         </label>
         <input type="text" id="node-input-config" data-i18n="[placeholder]safe-queue.label.config">
     </div>
+
 </script>
 
 <script type="text/x-red" data-help-name="queue ack">
     <p>SafeQueue Acknowledge</p>
     <p>Para confirmação do envio da mensagem esse nó precisa receber no msg.id : a chave única de identificação da mensagem
         enviada pelo "SafeQueue OUT" no campo msg.id</p>
+
 </script>
 
 <script type="text/javascript">
@@ -399,10 +416,12 @@ limitations under the License.
 		<input type="checkbox" id="node-config-input-startJob" style="display: inline-block; width: auto; vertical-align: top;">
 		<label for="node-config-input-startJob" style="width:70%;"><span data-i18n="safe-queue.config.label.start-job"></span></label>
 	</div>
+
 </script>
 
 <script type="text/x-red" data-help-name="queue config">
     <p>SafeQueue Config</p>
+
 </script>
 
 <script type="text/javascript">
@@ -425,7 +444,7 @@ limitations under the License.
                 value: "1000",
                 validate: RED.validators.number()
             },
-            startJob:{
+            startJob: {
                 value: true
             }
 

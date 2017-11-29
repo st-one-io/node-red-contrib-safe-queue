@@ -41,12 +41,15 @@ function destroyerDirBase(fileSystem, pathBase, callback) {
     fs.stat(dirBase, (err, stats) => {
         if (!err) {
             trataDone((err, proximo) => {
+                // console.log("Error trataDone: ", err, " prox: ", proximo);
                 if (proximo) {
                     //proximo
                     trataError((err, proximo) => {
+                        // console.log("Error trataError: ", err, " prox: ", proximo);
                         if (proximo) {
                             //proximo
                             trataQueue((err, proximo) => {
+                                // console.log("Error trataQueue: ", err, " prox: ", proximo);
                                 if (proximo) {
                                     //proximo
                                     fs.rmdir(dirBase, (err) => {
@@ -74,12 +77,15 @@ function destroyerDirBase(fileSystem, pathBase, callback) {
         var proximo = null;
 
         fs.stat(dirDone, (err, stats) => {
+            // console.log("func trataDone1: ", err, " prox: ", proximo);
             if (!err) {
                 //deleta files
-                fileSystem.deleteDone(null, (err) => {
+                fileSystem.deleteDone(0, (err) => {
+                    // console.log("func trataDone2: ", err, " prox: ", proximo);
                     if (!err) {
                         //deleta dir
                         fs.rmdir(dirDone, (err) => {
+                            // console.log("func trataDone3: ", err, " prox: ", proximo);
                             if (!err) {
                                 //proximo
                                 proximo = true;
@@ -109,12 +115,15 @@ function destroyerDirBase(fileSystem, pathBase, callback) {
         var proximo = null;
 
         fs.stat(dirError, (err, stats) => {
+            // console.log("func trataError1: ", err, " prox: ", proximo);
             if (!err) {
                 //deleta files
-                fileSystem.deleteError(null, (err) => {
+                fileSystem.deleteError(0, (err) => {
+                    // console.log("func trataError2: ", err, " prox: ", proximo);
                     if (!err) {
                         //deleta dir
                         fs.rmdir(dirError, (err) => {
+                            // console.log("func trataError3: ", err, " prox: ", proximo);
                             if (!err) {
                                 //proximo
                                 proximo = true;
@@ -144,12 +153,15 @@ function destroyerDirBase(fileSystem, pathBase, callback) {
         var proximo = null;
 
         fs.stat(dirQueue, (err, stats) => {
+            // console.log("func trataQueue1: ", err, " prox: ", proximo);
             if (!err) {
                 //deleta files
                 fileSystem.deleteQueue((err) => {
+                    // console.log("func trataQueue2: ", err, " prox: ", proximo);
                     if (!err) {
                         //deleta dir
                         fs.rmdir(dirQueue, (err) => {
+                            // console.log("func trataQueue3: ", err, " prox: ", proximo);
                             if (!err) {
                                 //proximo
                                 proximo = true;
@@ -202,6 +214,7 @@ describe('#SafeQueue', () => {
                                         if (!err) {
                                             if (stat.isDirectory()) {
                                                 destroyerDirBase(fileSystem, pathBase, (err) => {
+                                                    // console.log("Error: ", err);
                                                     if (!err) {
                                                         done();
                                                     }
@@ -219,7 +232,6 @@ describe('#SafeQueue', () => {
     });
     //--> Diretorios
 
-
     //--> Salvar Arquivos
     it('#Salvar arquivo e verificar integridade', (done) => {
         let pathBase = getDirBase();
@@ -227,28 +239,46 @@ describe('#SafeQueue', () => {
 
         var teste = this;
 
-        teste.obj1 = {'_msgid': "123456", 'payload': "File Data1"};
-        teste.obj2 = {'_msgid': "654321", 'payload': "File Data2"};
+        teste.obj1 = {'keyMessage': "123456", '_msgid': "123456", 'payload': "File Data1"};
+        teste.obj2 = {'keyMessage': "654321", '_msgid': "654321", 'payload': "File Data2"};
 
         fileSystem.init((err) => {
+            // console.log("Init Error: ", err);
             if (!err) {
                 fileSystem.saveMessage(teste.obj1, (err, res) => {
+                    // console.log("Save Error: ", err);
                     if (!err) {
                         fileSystem.saveMessage(teste.obj2, (err, res) => {
+                            // console.log("Save Error: ", err);
                             if (!err) {
                                 fileSystem.getMessage(teste.obj1._msgid, (err, data) => {
+                                    // console.log("Get Error: ", err);
+
                                     if (!err) {
-                                        expect(data).to.be.deep.equal({'_msgid': "123456", 'payload': "File Data1"});
+
+                                        expect(data).to.be.deep.equal({
+                                            'keyMessage': "123456",
+                                            '_msgid': "123456",
+                                            'payload': "File Data1"
+                                        });
+
                                         fileSystem.getMessage(teste.obj2._msgid, (err, data) => {
+
+                                            // console.log("Get Error: ", err);
+
                                             expect(data).to.be.deep.equal({
+                                                'keyMessage': "654321",
                                                 '_msgid': "654321",
                                                 'payload': "File Data2"
                                             });
+
                                             if (!err) {
                                                 fileSystem.getQueueSize((err, res) => {
+                                                    // console.log("Get size Error: ", err);
                                                     if (!err) {
                                                         expect(2).to.equal(res);
                                                         destroyerDirBase(fileSystem, pathBase, (err) => {
+                                                            // console.log("Destroyer Error: ", err);
                                                             if (!err) {
                                                                 done();
                                                             }
@@ -274,7 +304,7 @@ describe('#SafeQueue', () => {
 
         var teste = this;
 
-        teste.obj = {'_msgid': "123456", 'payload': "File Data"};
+        teste.obj = {'keyMessage': "123456", '_msgid': "123456", 'payload': "File Data1"};
 
         fileSystem.init((err) => {
             if (!err) {
@@ -286,7 +316,11 @@ describe('#SafeQueue', () => {
                             if (!err) {
                                 fileSystem.getMessage(teste.obj._msgid, (err, data) => {
                                     if (!err) {
-                                        expect(data).to.be.deep.equal({'_msgid': "123456", 'payload': "File Data"});
+                                        expect(data).to.be.deep.equal({
+                                            'keyMessage': "123456",
+                                            '_msgid': "123456",
+                                            'payload': "File Data1"
+                                        });
                                         destroyerDirBase(fileSystem, pathBase, (err) => {
                                             if (!err) {
                                                 done();
@@ -309,7 +343,7 @@ describe('#SafeQueue', () => {
 
         var teste = this;
 
-        teste.obj = {'_msgid': "123456", 'payload': "File Data"};
+        teste.obj = {'keyMessage': "123456", '_msgid': "123456", 'payload': "File Data1"};
 
         fileSystem.init((err) => {
             // console.log("File System Err: ", err);
@@ -323,7 +357,11 @@ describe('#SafeQueue', () => {
                                 fileSystem.getMessage(teste.obj._msgid, (err, data) => {
                                     // console.log("Get Message Err: ", err);
                                     if (!err) {
-                                        expect(data).to.be.deep.equal({'_msgid': "123456", 'payload': "File Data"});
+                                        expect(data).to.be.deep.equal({
+                                            'keyMessage': "123456",
+                                            '_msgid': "123456",
+                                            'payload': "File Data1"
+                                        });
                                         destroyerDirBase(fileSystem, pathBase, (err) => {
                                             // console.log("Final Destroyer Err: ", err);
                                             if (!err) {
@@ -378,8 +416,9 @@ describe('#SafeQueue', () => {
 
         var teste = this;
 
-        teste.obj1 = {'_msgid': "123456", 'payload': "File Data1"};
-        teste.obj2 = {'_msgid': "654321", 'payload': "File Data2"};
+        teste.obj1 = {'keyMessage': "123456", '_msgid': "123456", 'payload': "File Data1"};
+        teste.obj2 = {'keyMessage': "654321", '_msgid': "654321", 'payload': "File Data2"};
+
 
         fileSystem.init((err) => {
             if (!err) {
@@ -387,19 +426,31 @@ describe('#SafeQueue', () => {
                     if (!err) {
                         fileSystem.saveMessage(teste.obj2, (err, res) => {
                             if (!err) {
-                                fileSystem.errorMessage(teste.obj1._msgid, (err, res) => {
+                                fileSystem.errorMessage(teste.obj1.keyMessage, (err) => {
                                     if (!err) {
-                                        fileSystem.errorMessage(teste.obj2._msgid, (err, res) => {
-                                            fileSystem.getErrorSize((err, res) => {
-                                                if (!err) {
-                                                    expect(2).to.equal(res);
-                                                    destroyerDirBase(fileSystem, pathBase, (err) => {
-                                                        if (!err) {
-                                                            done();
-                                                        }
-                                                    });
-                                                }
-                                            });
+                                        fileSystem.getErrorSize((err, res) => {
+                                            if (!err) {
+                                                expect(1).to.equal(res);
+
+                                                fileSystem.errorMessage(teste.obj2.keyMessage, (err) => {
+                                                    if (!err) {
+
+                                                        fileSystem.getErrorSize((err, res) => {
+                                                            if (!err) {
+
+                                                                expect(2).to.equal(res);
+
+                                                                destroyerDirBase(fileSystem, pathBase, (err) => {
+                                                                    if (!err) {
+                                                                        done();
+                                                                    }
+                                                                });
+
+                                                            }
+                                                        });
+                                                    }
+                                                });
+                                            }
                                         });
                                     }
                                 });
@@ -416,8 +467,10 @@ describe('#SafeQueue', () => {
         let fileSystem = new FileSystem({'path': pathBase});
 
         var teste = this;
-        teste.obj1 = {'_msgid': "123456", 'payload': "File Data1"};
-        teste.obj2 = {'_msgid': "654321", 'payload': "File Data2"};
+
+        teste.obj1 = {'keyMessage': "123456", '_msgid': "123456", 'payload': "File Data1"};
+        teste.obj2 = {'keyMessage': "654321", '_msgid': "654321", 'payload': "File Data2"};
+
 
         fileSystem.init((err) => {
             if (!err) {
@@ -457,7 +510,7 @@ describe('#SafeQueue', () => {
         let dirError = path.join(pathBase, 'error');
 
         var teste = this;
-        teste.obj1 = {'_msgid': "123456", 'payload': "File Data"};
+        teste.obj1 = {'keyMessage': "123456", '_msgid': "123456", 'payload': "File Data1"};
 
         fileSystem.init((err) => {
             if (!err) {
@@ -493,7 +546,7 @@ describe('#SafeQueue', () => {
         let dirDone = path.join(pathBase, 'done');
 
         var teste = this;
-        teste.obj1 = {'_msgid': "123456", 'payload': "File Data"};
+        teste.obj1 = {'keyMessage': "123456", '_msgid': "123456", 'payload': "File Data1"};
 
         fileSystem.init((err) => {
             if (!err) {
@@ -531,10 +584,8 @@ describe('#SafeQueue', () => {
         let fileSystem = new FileSystem({'path': pathBase});
 
         var teste = this;
-
-        teste.obj1 = {'_msgid': "123456", 'payload': "File Data1"};
-        teste.obj2 = {'_msgid': "654321", 'payload': "File Data2"};
-
+        teste.obj1 = {'keyMessage': "123456", '_msgid': "123456", 'payload': "File Data1"};
+        teste.obj2 = {'keyMessage': "654321", '_msgid': "654321", 'payload': "File Data2"};
 
         fileSystem.init((err) => {
             if (!err) {
@@ -575,8 +626,8 @@ describe('#SafeQueue', () => {
 
         var teste = this;
 
-        teste.obj1 = {'_msgid': "123456", 'payload': "File Data1"};
-        teste.obj2 = {'_msgid': "654321", 'payload': "File Data2"};
+        teste.obj1 = {'keyMessage': "123456", '_msgid': "123456", 'payload': "File Data1"};
+        teste.obj2 = {'keyMessage': "654321", '_msgid': "654321", 'payload': "File Data2"};
 
         fileSystem.init((err) => {
             if (!err) {
@@ -622,9 +673,9 @@ describe('#SafeQueue', () => {
         let fileSystem = new FileSystem({'path': pathBase});
 
         var teste = this;
+        teste.obj1 = {'keyMessage': "123456", '_msgid': "123456", 'payload': "File Data1"};
+        teste.obj2 = {'keyMessage': "654321", '_msgid': "654321", 'payload': "File Data2"};
 
-        teste.obj1 = {'_msgid': "123456", 'payload': "File Data1"};
-        teste.obj2 = {'_msgid': "654321", 'payload': "File Data2"};
 
         fileSystem.init((err) => {
             if (!err) {
@@ -675,10 +726,9 @@ describe('#SafeQueue', () => {
         let fileSystem = new FileSystem({'path': pathBase});
 
         var teste = this;
-
-        teste.obj1 = {'_msgid': "123456", 'payload': "File Data1"};
-        teste.obj2 = {'_msgid': "654321", 'payload': "File Data2"};
-        teste.obj3 = {'_msgid': "987654", 'payload': "File Data3"};
+        teste.obj1 = {'keyMessage': "123456", '_msgid': "123456", 'payload': "File Data1"};
+        teste.obj2 = {'keyMessage': "654321", '_msgid': "654321", 'payload': "File Data2"};
+        teste.obj3 = {'keyMessage': "987654", '_msgid': "987654", 'payload': "File Data3"};
 
         fileSystem.init((err) => {
             if (!err) {
@@ -714,10 +764,9 @@ describe('#SafeQueue', () => {
         let fileSystem = new FileSystem({'path': pathBase});
 
         var teste = this;
-
-        teste.obj1 = {'_msgid': "123456", 'payload': "File Data1"};
-        teste.obj2 = {'_msgid': "654321", 'payload': "File Data2"};
-        teste.obj3 = {'_msgid': "987654", 'payload': "File Data3"};
+        teste.obj1 = {'keyMessage': "123456", '_msgid': "123456", 'payload': "File Data1"};
+        teste.obj2 = {'keyMessage': "654321", '_msgid': "654321", 'payload': "File Data2"};
+        teste.obj3 = {'keyMessage': "987654", '_msgid': "987654", 'payload': "File Data3"};
 
         fileSystem.init((err) => {
             if (!err) {
@@ -736,7 +785,7 @@ describe('#SafeQueue', () => {
                                                                 fileSystem.getErrorSize((err, res) => {
                                                                     if (!err) {
                                                                         expect(3).to.equal(res);
-                                                                        fileSystem.resendErrors(null, (err, res) => {
+                                                                        fileSystem.resendErrors(0, (err, res) => {
                                                                             if (!err) {
                                                                                 fileSystem.getQueueSize((err, res) => {
                                                                                     if (!err) {
@@ -778,7 +827,7 @@ describe('#SafeQueue', () => {
         let dirFile = path.join(dirQueue, 'file.json');
 
         var teste = this;
-        teste.obj1 = {'_msgid': "123456", 'payload': "File Data 1"};
+        teste.obj1 = {'keyMessage': "123456", '_msgid': "123456", 'payload': "File Data1"};
 
         fileSystem.init((err) => {
             if (!err) {
@@ -789,7 +838,11 @@ describe('#SafeQueue', () => {
                                 expect(1).to.equal(res);
                                 fileSystem.getMessage('file', (err, data) => {
                                     if (!err) {
-                                        expect(data).to.be.deep.equal({'_msgid': "123456", 'payload': "File Data 1"});
+                                        expect(data).to.be.deep.equal({
+                                            'keyMessage': "123456",
+                                            '_msgid': "123456",
+                                            'payload': "File Data1"
+                                        });
                                         fileSystem.getMessageList((err, res) => {
 
                                             var compare = ['file'];
@@ -817,7 +870,7 @@ describe('#SafeQueue', () => {
         let dirFile = path.join(dirQueue, 'file.txt');
 
         var teste = this;
-        teste.obj1 = {'_msgid': "123456", 'payload': "File Data 1"};
+        teste.obj1 = {'keyMessage': "123456", '_msgid': "123456", 'payload': "File Data1"};
 
         fileSystem.init((err) => {
             if (!err) {
@@ -852,7 +905,7 @@ describe('#SafeQueue', () => {
         let dirFile = path.join(dirQueue, 'file.json');
 
         var teste = this;
-        teste.obj1 = {'_msgid': "123456", 'payload': "File Data 1"};
+        teste.obj1 = {'keyMessage': "123456", '_msgid': "123456", 'payload': "File Data1"};
 
         fileSystem.init((err) => {
             if (!err) {
@@ -863,7 +916,11 @@ describe('#SafeQueue', () => {
                                 expect(1).to.equal(res);
                                 fileSystem.getMessage('file', (err, data) => {
                                     if (!err) {
-                                        expect(data).to.be.deep.equal({'_msgid': "123456", 'payload': "File Data 1"});
+                                        expect(data).to.be.deep.equal({
+                                            'keyMessage': "123456",
+                                            '_msgid': "123456",
+                                            'payload': "File Data1"
+                                        });
                                         fileSystem.getMessageList((err, res) => {
 
                                             var compare = ['file'];
@@ -901,7 +958,7 @@ describe('#SafeQueue', () => {
         let dirFile = path.join(dirQueue, 'file.json');
 
         var teste = this;
-        teste.obj1 = {'_msgid': "123456", 'payload': "File Data 1"};
+        teste.obj1 = {'keyMessage': "123456", '_msgid': "123456", 'payload': "File Data1"};
 
         fileSystem.init((err) => {
             if (!err) {
@@ -912,7 +969,11 @@ describe('#SafeQueue', () => {
                                 expect(1).to.equal(res);
                                 fileSystem.getMessage('file', (err, data) => {
                                     if (!err) {
-                                        expect(data).to.be.deep.equal({'_msgid': "123456", 'payload': "File Data 1"});
+                                        expect(data).to.be.deep.equal({
+                                            'keyMessage': "123456",
+                                            '_msgid': "123456",
+                                            'payload': "File Data1"
+                                        });
                                         fileSystem.getMessageList((err, res) => {
 
                                             var compare = ['file'];
@@ -943,6 +1004,5 @@ describe('#SafeQueue', () => {
         });
     });
     //-->Ações externas
-
 
 });

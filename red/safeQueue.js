@@ -41,7 +41,6 @@ module.exports = function (RED) {
 
         this.storageMode = config.storage;
 
-
         this.autoStartJob = config.startJob;
 
         let infoPath = {'path': config.path};
@@ -118,11 +117,6 @@ module.exports = function (RED) {
 
         //---> Functions <---
         node.receiveMessage = function receiveMessage(message, callback) {
-
-            if (!node.initProccess) {
-                node.startMessages();
-            }
-
             let itemQueue = {};
             itemQueue.keyMessage = message._msgid;
             itemQueue.inProccess = false;
@@ -169,28 +163,34 @@ module.exports = function (RED) {
 
             if (this.messageProccess.has(itemQueue.keyMessage)) {
                 message = this.messageProccess.get(itemQueue.keyMessage);
-                nodeOut.sendMessage(message);
+                nodeOut.sendMessage(message.message);
             } else {
                 this.storage.getMessage(itemQueue.keyMessage, (err, data) => {
                     if (err) {
                         return;
                     }
 
+                    let itemMessage = {};
+                    itemMessage.keyMessage = message._msgid;
+                    itemMessage.message = message.message;
+
+                    this.messageProccess.set(itemMessage.keyMessage, itemMessage);
+
                     message = data;
-                    nodeOut.sendMessage(message);
+                    nodeOut.sendMessage(message.message);
                 });
             }
         }
 
         node.getNodeOut = function getNodeOut() {
 
+            //Fuction set stop outputs and return null for stop proccessQueue()
             if (node.stopProccess) {
                 this.listNodeOut.forEach(out => {
                     if (!out.outInProccess) {
                         out.setOutStopProccess();
                     }
                 });
-
                 return null;
             }
 
@@ -229,7 +229,6 @@ module.exports = function (RED) {
             node.storage.errorMessage(itemQueue.keyMessage, (err) => {
                 if (err) {
                     node.error(err);
-                    return;
                 }
 
                 node.proccessQueue();
@@ -253,7 +252,6 @@ module.exports = function (RED) {
             node.storage.doneMessage(itemQueue.keyMessage, (err) => {
                 if (err) {
                     node.error(err);
-                    return;
                 }
                 node.proccessQueue();
             });
@@ -310,12 +308,14 @@ module.exports = function (RED) {
                 text: "new data"
             });
 
-
             node.config.receiveMessage(msg, (err) => {
                 if (err) {
                     msg.error = err;
-
                     node.error(msg.error);
+
+                    if(values.sendError){
+                        node.send(msg);
+                    }
 
                     node.status({
                         fill: "red",
@@ -327,6 +327,7 @@ module.exports = function (RED) {
                 }
 
                 node.send(msg);
+
                 node.status({
                     fill: "green",
                     shape: "dot",
@@ -349,6 +350,11 @@ module.exports = function (RED) {
 
         node.config = RED.nodes.getNode(values.config);
 
+        if (!node.config) {
+            node.error(RED._("safe-queue.message-errors.error-node-config"));
+            return;
+        }
+
         node.config.registerOut(node);
 
         node.setOutStopProccess = function setOutStopProccess() {
@@ -362,7 +368,7 @@ module.exports = function (RED) {
         node.setOutInProccess = function setOutInProccess() {
             this.outInProccess = true;
             node.status({
-                fill: "red",
+                fill: "blue",
                 shape: "dot",
                 text: "proccess"
             });
@@ -395,132 +401,142 @@ module.exports = function (RED) {
 
         node.config = RED.nodes.getNode(values.config);
 
+        if (!node.config) {
+            node.error(RED._("safe-queue.message-errors.error-node-config"));
+            return;
+        }
+
         node.on('input', function (msg) {
 
             var operation = values.operation;
 
-            if (operation === 'queue-size') {
+            switch (operation) {
+                case 'queue-size':
+                    node.config.getQueueSize(function (error, results) {
 
-                node.config.getQueueSize(function (error, results) {
+                        if (!error) {
+                            var size = results;
 
-                    if (!error) {
-                        var size = results;
+                            node.status({
+                                fill: "blue",
+                                shape: "dot",
+                                text: size
+                            });
 
-                        node.status({
-                            fill: "blue",
-                            shape: "dot",
-                            text: size
-                        });
+                            msg.payload = size;
+                            node.send(msg);
 
-                        msg.payload = size;
+                        } else {
+                            node.error(error);
+                        }
+                    });
+
+                    break;
+
+                case 'done-size':
+                    node.config.getDoneSize(function (error, results) {
+
+                        if (!error) {
+
+                            var size = results;
+
+                            node.status({
+                                fill: "green",
+                                shape: "dot",
+                                text: size
+                            });
+
+                            msg.payload = size;
+                            node.send(msg);
+
+                        } else {
+                            node.error(error);
+                        }
+                    });
+
+                    break;
+
+                case 'error-size':
+                    node.config.getErrorSize(function (error, results) {
+
+                        if (!error) {
+                            var size = results;
+                            node.status({
+                                fill: "red",
+                                shape: "dot",
+                                text: size
+                            });
+
+                            msg.payload = size;
+                            node.send(msg);
+
+                        } else {
+                            node.error(error);
+                        }
+                    });
+
+                    break;
+
+                case 'delete-error':
+                    node.config.deleteError(this.days, (err) => {
+                        if (err) {
+                            node.error(err);
+                            return;
+                        }
+
+                        msg.payload = true;
                         node.send(msg);
+                    });
 
-                    } else {
-                        node.error(error);
-                    }
-                });
-            }
+                    break;
 
-            if (operation === 'done-size') {
+                case 'delete-done':
+                    node.config.deleteDone(this.days, (err, results) => {
+                        if (err) {
+                            node.error(err);
+                            return;
+                        }
 
-                node.config.getDoneSize(function (error, results) {
-
-                    if (!error) {
-
-                        var size = results;
-
-                        node.status({
-                            fill: "green",
-                            shape: "dot",
-                            text: size
-                        });
-
-                        msg.payload = size;
+                        msg.payload = true;
                         node.send(msg);
+                    });
 
-                    } else {
-                        node.error(error);
-                    }
-                });
-            }
+                    break;
 
-            if (operation === 'error-size') {
+                case 'resend-errors':
+                    node.config.resendErrors(this.days, (err) => {
+                        if (err) {
+                            return;
+                        }
+                        node.config.startMessages();
+                    });
 
-                node.config.getErrorSize(function (error, results) {
+                    break;
 
-                    if (!error) {
-                        var size = results;
-                        node.status({
-                            fill: "red",
-                            shape: "dot",
-                            text: size
-                        });
+                //TODO VERIFICAR CASOS DE STOP -> START
+                case 'start-proccess':
+                    node.config.stopProccess = false;
 
-                        msg.payload = size;
-                        node.send(msg);
+                    node.config.listNodeOut.forEach(out => {
+                        out.setOutFree();
+                    });
 
-                    } else {
-                        node.error(error);
-                    }
-                });
-            }
-
-            if (operation === 'delete-error') {
-                node.config.deleteError(this.days, (err) => {
-                    if (err) {
-                        node.error(err);
-                        return;
-                    }
-
-                    msg.payload = true;
-                    node.send(msg);
-                });
-            }
-
-            if (operation === 'delete-done') {
-                node.config.deleteDone(this.days, (err, results) => {
-                    if (err) {
-                        node.error(err);
-                        return;
-                    }
-
-                    msg.payload = true;
-                    node.send(msg);
-                });
-            }
-
-            if (operation === 'resend-errors') {
-                node.config.resendErrors(this.days, (err) =>{
-                    if(err){
-                        return;
-                    }
                     node.config.startMessages();
-                });
+
+                    node.log("Start proccess");
+
+                    node.send(msg);
+
+                    break;
+
+                case 'stop-proccess':
+                    node.config.stopProccess = true;
+
+                    node.log("Stop Outputs");
+
+                    node.send(msg);
+                    break;
             }
-
-            if (operation === 'start-proccess') {
-
-                node.config.stopProccess = false;
-
-                node.config.listNodeOut.forEach(out => {
-                    out.setOutFree();
-                });
-
-                node.config.startMessages();
-
-                node.log("Start proccess");
-                msg.payload = "Start proccess";
-                node.send(msg);
-            }
-
-            if (operation === 'stop-proccess') {
-                node.config.stopProccess = true;
-
-                node.log("Stop Outputs");
-                msg.payload = "Stop Outputs";
-                node.send(msg);
-            }
-
         });
     }
 
@@ -537,10 +553,10 @@ module.exports = function (RED) {
 
         node.on('input', function (msg) {
             if (msg.error) {
-                node.config.onError(msg.keyMessage);
+                node.config.onError(msg._msgid);
                 return;
             }
-            node.config.onSuccess(msg.keyMessage);
+            node.config.onSuccess(msg._msgid);
         });
     }
 

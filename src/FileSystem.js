@@ -100,6 +100,14 @@ function getFolderSize(path, chkSubdir, callback) {
 
 function moveFile(nameFile, extensionFile, oldPath, newPath, callback) {
 
+    let callbackDone = false;
+
+    function doCallback(err, data) {
+        if (callbackDone) return;
+        callbackDone = true;
+        callback(err, data);
+    }
+
     let oldPathFile = pathLib.join(oldPath, nameFile + extensionFile);
     let newPathFile = pathLib.join(newPath, nameFile + extensionFile);
 
@@ -107,20 +115,21 @@ function moveFile(nameFile, extensionFile, oldPath, newPath, callback) {
         if (err) {
             mkdirp(newPath, (err) => {
                 if (err) {
-                    callback(err);
+                    doCallback(err);
                     return;
                 }
 
                 fs.rename(oldPathFile, newPathFile, (err) => {
                     if (err) {
-                        callback(err);
+                        doCallback(err);
                         return;
                     }
-                    callback(null);
+                    doCallback(null);
                 });
             });
+            return;
         }
-        callback(null);
+        doCallback(null);
     });
 }
 
@@ -132,17 +141,26 @@ function deleteFile(pathFile, callback) {
 
 function deleteFilesDir(pathDir, callback) {
 
+    let callbackDone = false;
+
+    function doCallback(err, data) {
+        if (callbackDone) return;
+        callbackDone = true;
+        callback(err, data);
+    }
+
+
     fs.readdir(pathDir, 'utf8', (err, files) => {
 
         if (err) {
-            callback(err);
+            doCallback(err);
             return;
         }
 
         var filesCount = files.length;
 
         if (filesCount == 0) {
-            callback(err);
+            doCallback(err);
             return;
         }
 
@@ -151,12 +169,12 @@ function deleteFilesDir(pathDir, callback) {
             let urlFile = pathLib.join(pathDir, file);
             deleteFile(urlFile, (err) => {
                 if (err) {
-                    callback(err);
+                    doCallback(err);
                     return;
                 }
                 filesCount--;
                 if (filesCount === 0) {
-                    callback(null);
+                    doCallback(null);
                 }
             });
         }
@@ -164,11 +182,23 @@ function deleteFilesDir(pathDir, callback) {
 }
 
 function subtractDate(days, date) {
+
     var newDate = new Date(date);
 
     var days = days * 24 * 60 * 60 * 1000;
 
     newDate = new Date(newDate.getTime() - days);
+
+    return newDate;
+}
+
+function sumDate(days, date) {
+
+    var newDate = new Date(date);
+
+    var days = days * 24 * 60 * 60 * 1000;
+
+    newDate = new Date(newDate.getTime() + days);
 
     return newDate;
 }
@@ -378,367 +408,258 @@ class FileSystem extends EventEmitter {
 
         days = days || 0;
 
-        if (days == 0) {
-            fs.readdir(this.uriError, 'utf8', (err, dirs) => {
+        let callbackDone = false;
 
-                if (err) {
-                    callback(err);
+        function doCallback(err, data) {
+            if (callbackDone) return;
+            callbackDone = true;
+            callback(err, data);
+        }
+
+        let dateLastDir = 0;
+
+        if (days > 0) {
+            dateLastDir = moment(subtractDate(days, new Date()));
+        }
+
+        fs.readdir(this.uriError, 'utf8', (err, dirs) => {
+
+            if (err) {
+                doCallback(err);
+                return;
+            }
+
+            var countDirs = dirs.length;
+
+            if (countDirs === 0) {
+                doCallback(null);
+                return;
+            }
+
+            let totalFiles = 0;
+
+            dirs.forEach(dir => {
+
+                let dayDir = moment(dir, "YYYY-MM-DD");
+
+                if ((dateLastDir - dayDir) > 0) {
+                    countDirs--;
                     return;
                 }
 
-                var countDirs = dirs.length;
 
-                if (countDirs === 0) {
-                    callback(err);
-                    return;
-                }
+                let urlDir = pathLib.join(this.uriError, dir);
 
-                dirs.forEach(dir => {
+                fs.stat(urlDir, (err, stat) => {
+                    if (err) {
+                        doCallback(err);
+                        return;
+                    }
 
-                    let urlDir = pathLib.join(this.uriError, dir);
+                    if (!stat.isDirectory()) {
+                        countDirs--;
+                        return;
+                    }
 
-                    fs.stat(urlDir, (err, stat) => {
+                    fs.readdir(urlDir, 'utf-8', (err, files) => {
                         if (err) {
-                            callback(err);
+                            doCallback(err);
                             return;
                         }
 
-                        fs.readdir(urlDir, 'utf-8', (err, files) => {
-                            if (err) {
-                                callback(err);
-                                return;
-                            }
+                        var countFiles = files.length;
 
-                            var countFiles = files.length;
+                        if (countFiles === 0) {
+                            fs.rmdir(urlDir, (err) => {
+                                doCallback(err);
+                            });
+                            return;
+                        }
 
-                            if (countFiles === 0) {
-                                fs.rmdir(urlDir, (err) => {
-                                    callback(err);
-                                });
-                            }
+                        totalFiles += countFiles;
+                        countDirs--;
 
-                            files.forEach(file => {
-                                let oldFile = pathLib.join(urlDir, file);
-                                let newFile = pathLib.join(this.uriQueue, file);
+                        files.forEach(file => {
+                            let oldFile = pathLib.join(urlDir, file);
+                            let newFile = pathLib.join(this.uriQueue, file);
 
-                                fs.stat(oldFile, (err, stat) => {
+                            fs.stat(oldFile, (err, stat) => {
+                                if (err) {
+                                    doCallback(err);
+                                    return;
+                                }
+
+                                if (stat.isDirectory()) {
+                                    totalFiles--;
+                                    return;
+                                }
+
+                                fs.rename(oldFile, newFile, (err) => {
+
                                     if (err) {
-                                        callback(err);
+                                        doCallback(err);
                                         return;
                                     }
 
-                                    if (stat.isDirectory()) {
-                                        return;
+                                    totalFiles--;
+                                    countFiles--;
+
+                                    if (countFiles === 0) {
+                                        fs.rmdir(urlDir, (err) => {
+                                        });
                                     }
-                                    fs.rename(oldFile, newFile, (err) => {
 
-                                        if (err) {
-                                            callback(err);
-                                            return;
-                                        }
+                                    if (totalFiles === 0 && countDirs === 0) {
+                                        doCallback(err);
+                                    }
 
-                                        countFiles--;
-
-                                        if (countFiles === 0) {
-                                            if (countDirs === 0) {
-                                                callback(err);
-                                            }
-                                        }
-
-                                    });
                                 });
                             });
                         });
                     });
-                    countDirs--;
                 });
             });
-        }
-
-        if (days > 0) {
-
-            let dateLastDir = moment(subtractDate(days, new Date()));
-
-            fs.readdir(this.uriError, 'utf-8', (err, dirs) => {
-                if (err) {
-                    callback(err);
-                    return;
-                }
-
-                var countDirs = dirs.length;
-
-                if (countDirs == 0) {
-                    callback(err);
-                    return;
-                }
-
-                dirs.forEach(dir => {
-
-                    if(countDirs <= 0){
-                        callback(null);
-                        return;
-                    }
-
-                    let dayDir = moment(dir, "YYYY-MM-DD");
-
-                    if ((dateLastDir - dayDir) <= 0) {
-
-                        let urlDir = pathLib.join(this.uriError, dir);
-
-                        fs.stat(urlDir, (err, stat) => {
-                            if (err || !stat.isDirectory()) {
-                                return;
-                            }
-
-                            fs.readdir(urlDir, 'utf-8', (err, files) => {
-                                if (err) {
-                                    callback(err);
-                                    return;
-                                }
-
-                                var countFiles = files.length;
-
-                                if (countFiles == 0) {
-                                    fs.rmdir(urlDir, (err) => {
-                                        countDirs--;
-                                    });
-                                    return;
-                                }
-
-                                files.forEach(file => {
-                                    let oldFile = pathLib.join(urlDir, file);
-                                    let newFile = pathLib.join(this.uriQueue, file);
-
-                                    fs.stat(oldFile, (err, stat) => {
-                                        if (err) {
-                                            callback(err);
-                                            return;
-                                        }
-
-                                        fs.rename(oldFile, newFile, (err) => {
-
-                                            if (err) {
-                                                callback(err);
-                                                return;
-                                            }
-
-                                            countFiles--;
-
-                                            if (countFiles == 0) {
-
-                                                fs.rmdir(urlDir, (err) => {
-                                                    countDirs--;
-
-                                                    if (countDirs == 0) {
-                                                        callback(err);
-                                                    }
-
-                                                });
-                                            }
-                                        });
-                                    });
-                                });
-                            });
-                        });
-                    }else{
-                        countDirs--;
-                    }
-                });
-            });
-        }
+        });
     }
 
     //--> GET FILES
 
 
     //--> DELETE FILES
-    /*
+
     deleteQueue(callback) {
         deleteFilesDir(this.uriQueue, (err) => {
             callback(err);
         });
-    }*/
+    }
 
     deleteDone(days, callback) {
 
         days = days || 0;
 
-        if (days == 0) {
+        let callbackDone = false;
 
-            fs.readdir(this.uriDone, 'utf-8', (err, dirs) => {
-                if (err) {
-                    callback(err);
-                    return;
-                }
-
-                var countDirs = dirs.length;
-
-                if (countDirs === 0) {
-                    callback(err);
-                    return;
-                }
-
-                dirs.forEach(dir => {
-
-                    let urlDir = pathLib.join(this.uriDone, dir);
-
-                    deleteFilesDir(urlDir, (err) => {
-                        if (err) {
-                            callback(err);
-                            return;
-                        }
-
-                        fs.rmdir(urlDir, (err) => {
-                            countDirs--;
-                        });
-
-                        if (countDirs === 0) {
-                            callback(err);
-                        }
-                    });
-                });
-            });
+        function doCallback(err, data) {
+            if (callbackDone) return;
+            callbackDone = true;
+            callback(err, data);
         }
+
+        let dateLastDir = moment(sumDate(1, new Date()));
 
         if (days > 0) {
+            dateLastDir = moment(subtractDate(days, new Date()));
+        }
 
-            let dateLastDir = moment(subtractDate(days, new Date()));
 
-            fs.readdir(this.uriDone, 'utf-8', (err, dirs) => {
-                if (err) {
-                    callback(err);
+        fs.readdir(this.uriDone, 'utf-8', (err, dirs) => {
+            if (err) {
+                doCallback(err);
+                return;
+            }
+
+            var countDirs = dirs.length;
+
+            if (countDirs === 0) {
+                doCallback(err);
+                return;
+            }
+
+            dirs.forEach(dir => {
+
+                let dayDir = moment(dir, "YYYY-MM-DD");
+
+                if (dateLastDir < dayDir) {
+                    countDirs--;
                     return;
                 }
 
-                var countDirs = dirs.length;
+                let urlDir = pathLib.join(this.uriDone, dir);
 
-                if (countDirs === 0) {
-                    callback(err);
-                    return;
-                }
-
-                dirs.forEach(dir => {
-
-                    let dayDir = moment(dir, "YYYY-MM-DD");
-
-                    if ((dayDir - dateLastDir) <= 0) {
-                        let urlDir = pathLib.join(this.uriDone, dir);
-
-                        fs.stat(urlDir, (err, stat) => {
-                            if (err || !stat.isDirectory()) {
-                                return;
-                            }
-
-                            deleteFilesDir(urlDir, (err) => {
-                                if (err) {
-                                    callback(err);
-                                    return;
-                                }
-
-                                fs.rmdir(urlDir, (err) => {
-                                    days--;
-                                });
-
-                                if (days === 0) {
-                                    callback(err);
-                                }
-                            });
-                        });
+                deleteFilesDir(urlDir, (err) => {
+                    if (err) {
+                        doCallback(err);
+                        return;
                     }
+
+                    fs.rmdir(urlDir, (err) => {
+                        countDirs--;
+
+                        if (countDirs === 0) {
+                            doCallback(err);
+                        }
+                    });
+
+
                 });
             });
-        }
+        });
     }
 
     deleteError(days, callback) {
-
         days = days || 0;
 
-        if (days == 0) {
+        let callbackDone = false;
 
-            fs.readdir(this.uriError, 'utf-8', (err, dirs) => {
-                if (err) {
-                    callback(err);
+        function doCallback(err, data) {
+            if (callbackDone) return;
+            callbackDone = true;
+            callback(err, data);
+        }
+
+        let dateLastDir;
+
+        if (days > 0) {
+            dateLastDir = moment(subtractDate(days, new Date()));
+        } else {
+            dateLastDir = moment(sumDate(1, new Date()));
+        }
+
+        fs.readdir(this.uriError, 'utf-8', (err, dirs) => {
+            if (err) {
+                doCallback(err);
+                return;
+            }
+
+            var countDirs = dirs.length;
+
+            if (countDirs === 0) {
+                doCallback(err);
+                return;
+            }
+
+            dirs.forEach(dir => {
+
+                let dayDir = moment(dir, "YYYY-MM-DD");
+
+                if (dateLastDir < dayDir) {
+                    countDirs--;
                     return;
                 }
-
-                var countDirs = dirs.length;
 
                 if (countDirs === 0) {
-                    callback(err);
+                    doCallback(null);
                     return;
                 }
 
-                dirs.forEach(dir => {
+                let urlDir = pathLib.join(this.uriError, dir);
 
-                    let urlDir = pathLib.join(this.uriError, dir);
+                deleteFilesDir(urlDir, (err) => {
+                    if (err) {
+                        doCallback(err);
+                        return;
+                    }
 
-                    deleteFilesDir(urlDir, (err) => {
-                        if (err) {
-                            callback(err);
-                            return;
-                        }
-
-                        fs.rmdir(urlDir, (err) => {
-                            countDirs--;
-                        });
+                    fs.rmdir(urlDir, (err) => {
+                        countDirs--;
 
                         if (countDirs === 0) {
-                            callback(err);
+                            doCallback(err);
                         }
                     });
                 });
             });
-        }
-
-        if (days > 0) {
-
-            let dateLastDir = moment(subtractDate(days, new Date()));
-
-            fs.readdir(this.uriError, 'utf-8', (err, dirs) => {
-                if (err) {
-                    callback(err);
-                    return;
-                }
-
-                var countDirs = dirs.length;
-
-                if (countDirs === 0) {
-                    callback(err);
-                    return;
-                }
-
-                dirs.forEach(dir => {
-
-                    let dayDir = moment(dir, "YYYY-MM-DD");
-
-                    if ((dayDir - dateLastDir) <= 0) {
-                        let urlDir = pathLib.join(this.uriError, dir);
-
-                        fs.stat(urlDir, (err, stat) => {
-                            if (err || !stat.isDirectory()) {
-                                return;
-                            }
-
-                            deleteFilesDir(urlDir, (err) => {
-                                if (err) {
-                                    callback(err);
-                                    return;
-                                }
-
-                                fs.rmdir(urlDir, (err) => {
-                                    days--;
-                                });
-
-                                if (days === 0) {
-                                    callback(err);
-                                }
-                            });
-                        });
-                    }
-                });
-            });
-        }
+        });
     }
 
     //--> DELETE FILES

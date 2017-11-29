@@ -1,73 +1,72 @@
 {
-    "safe-queue": {
-        "in": {
-            "label": {
-
-            },
-            "define": {
-                "name": "queue in"
-            }
-        },
-        "out": {
-            "label": {
-
-            },
-            "define": {
-                "name": "queue out"
-            }
-        },
-        "control": {
-            "label": {
-                "operation": "Operation",
-                "days": "Days"
-
-            },
-            "define": {
-                "name": "queue control"
-            }
-        },
-        "config": {
-            "label": {
-                "storage": "Storage type",
-                "timeout-ack": "Timeout ACK",
-                "start-job": "Start job at start?"
-            },
-            "define": {
-                "name": "queue config"
-            }
-        },
-        "ack": {
-            "label": {
-
-            },
-            "define": {
-                "name": "queue ack"
-            }
-        },
-        "label": {
-            "name": "Name",
-            "config": "Config",
-            "path": "Path",
-            "url-data-base": "URL",
-            "port-data-base": "Port",
-            "user-data-base": "User",
-            "password-data-base": "Password"
-        },
-        "storage": {
-            "file-system": "File System",
-            "data-base": "Data Base"
-        },
-        "operation-options": {
-            "queue-size": "Queue size",
-            "delete-queue": "Delete queue",
-            "delete-error": "Delete error",
-            "delete-done": "Delete done",
-            "resend-errors": "Resend errors",
-            "done-size": "Done size",
-            "error-size": "Error size",
-            "start-proccess": "Start proccess",
-            "stop-proccess": "Stop proccess"
-        }
+  "safe-queue": {
+    "in": {
+      "label": {
+        "send-error": "Send .error?"
+      },
+      "define": {
+        "name": "queue in"
+      }
+    },
+    "out": {
+      "label": {
+      },
+      "define": {
+        "name": "queue out"
+      }
+    },
+    "control": {
+      "label": {
+        "operation": "Operation",
+        "days": "Days"
+      },
+      "define": {
+        "name": "queue control"
+      }
+    },
+    "config": {
+      "label": {
+        "storage": "Storage type",
+        "timeout-ack": "Timeout ACK",
+        "start-job": "Start job at start?"
+      },
+      "define": {
+        "name": "queue config"
+      }
+    },
+    "ack": {
+      "label": {
+      },
+      "define": {
+        "name": "queue ack"
+      }
+    },
+    "label": {
+      "name": "Name",
+      "config": "Config",
+      "path": "Path",
+      "url-data-base": "URL",
+      "port-data-base": "Port",
+      "user-data-base": "User",
+      "password-data-base": "Password"
+    },
+    "storage": {
+      "file-system": "File System",
+      "data-base": "Data Base"
+    },
+    "operation-options": {
+      "queue-size": "Queue size",
+      "delete-queue": "Delete queue",
+      "delete-error": "Delete error",
+      "delete-done": "Delete done",
+      "resend-errors": "Resend errors",
+      "done-size": "Done size",
+      "error-size": "Error size",
+      "start-proccess": "Start proccess",
+      "stop-proccess": "Stop proccess"
+    },
+    "message-errors": {
+      "error-node-config": "no configuration node setted"
     }
-
+  }
 }
