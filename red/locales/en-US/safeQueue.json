@@ -66,7 +66,12 @@
       "stop-process": "Stop process"
     },
     "message-errors": {
-      "error-node-config": "no configuration node setted"
+      "error-node-config": "no configuration node setted",
+      "fail-message-process" : "fail to process message"
+    },
+    "message-log": {
+      "start-process": "Start process",
+      "stop-output": "Stop output"
     }
   }
 }

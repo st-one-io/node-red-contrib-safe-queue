@@ -35,10 +35,6 @@ module.exports = function (RED) {
 
         this.timeOut = config.timeoutAck;
 
-        if (this.timeOut.length == 0) {
-            this.timeOut = 1000;
-        }
-
         this.storageMode = config.storage;
 
         this.autoStartJob = config.startJob;
@@ -158,7 +154,11 @@ module.exports = function (RED) {
 
             let message = {};
 
-            itemQueue.timer = setTimeout(node.onError, this.timeOut, itemQueue.keyMessage);
+            if(this.timeOut != 0){
+                itemQueue.timer = setTimeout(node.onError, this.timeOut, itemQueue.keyMessage);
+            }
+
+
             nodeOut.setOutInProcess();
 
             if (this.messageProcess.has(itemQueue.keyMessage)) {
@@ -214,10 +214,17 @@ module.exports = function (RED) {
 
             let itemQueue = node.virtualQueue.get(keyMessage);
 
-            node.warn(`Fail to process message ${itemQueue.keyMessage}`);
+            if(!itemQueue){
+                return;
+            }
+
+            node.warn(`${RED._("safe-queue.message-errors.fail-message-process")}: ${itemQueue.keyMessage}`);
 
             itemQueue.nodeOut.setOutFree();
-            clearTimeout(itemQueue.timer);
+
+            if(this.timeOut != 0){
+                clearTimeout(itemQueue.timer);
+            }
 
             if (node.stopProcess) {
                 itemQueue.nodeOut.setOutStopProcess();
@@ -240,8 +247,15 @@ module.exports = function (RED) {
 
             let itemQueue = this.virtualQueue.get(keyMessage);
 
+            if(!itemQueue){
+                return;
+            }
+
             itemQueue.nodeOut.setOutFree();
-            clearTimeout(itemQueue.timer);
+
+            if(this.timeOut != 0){
+                clearTimeout(itemQueue.timer);
+            }
 
             if (node.stopProcess) {
                 itemQueue.nodeOut.setOutStopProcess();
@@ -523,7 +537,7 @@ module.exports = function (RED) {
 
                     node.config.startMessages();
 
-                    node.log("Start process");
+                    node.log(RED._("safe-queue.message-log.start-process"));
 
                     node.send(msg);
 
@@ -532,7 +546,7 @@ module.exports = function (RED) {
                 case 'stop-process':
                     node.config.stopProcess = true;
 
-                    node.log("Stop Outputs");
+                    node.log(RED._("safe-queue.message-log.stop-output"));
 
                     node.send(msg);
                     break;
