@@ -67,11 +67,13 @@
     },
     "message-errors": {
       "error-node-config": "no configuration node setted",
-      "fail-message-process" : "fail to process message"
+      "fail-message-process" : "fail to process message",
+      "no-operation": "no chosen operation"
     },
     "message-log": {
       "start-process": "Start process",
-      "stop-output": "Stop output"
+      "stop-output": "Stop output",
+      "out-process": "Node out in process"
     }
   }
 }

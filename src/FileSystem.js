@@ -203,6 +203,76 @@ function sumDate(days, date) {
     return newDate;
 }
 
+function deleteFilesDay(days, path, callback) {
+    days = days || 0;
+
+    let callbackDone = false;
+
+    function doCallback(err, data) {
+        if (callbackDone) return;
+        callbackDone = true;
+        callback(err, data);
+    }
+
+    let dateLastDir;
+
+    if (days > 0) {
+        dateLastDir = moment(subtractDate(days, new Date()));
+    } else {
+        dateLastDir = moment(sumDate(1, new Date()));
+    }
+
+    fs.readdir(path, 'utf-8', (err, dirs) => {
+        if (err) {
+            doCallback(err);
+            return;
+        }
+
+        var countDirs = dirs.length;
+
+        if (countDirs === 0) {
+            doCallback(err);
+            return;
+        }
+
+        dirs.forEach(dir => {
+            let dayDir = moment(dir, "YYYY-MM-DD");
+
+            if(!dayDir.isValid()){
+                countDirs--;
+                return;
+            }
+
+            if (dateLastDir < dayDir) {
+                countDirs--;
+                return;
+            }
+
+            if (countDirs === 0) {
+                doCallback(null);
+                return;
+            }
+
+            let urlDir = pathLib.join(path, dir);
+
+            deleteFilesDir(urlDir, (err) => {
+                if (err) {
+                    doCallback(err);
+                    return;
+                }
+
+                fs.rmdir(urlDir, (err) => {
+                    countDirs--;
+
+                    if (countDirs === 0) {
+                        doCallback(err);
+                    }
+                });
+            });
+        });
+    });
+}
+
 
 class FileSystem extends EventEmitter {
 
@@ -442,6 +512,11 @@ class FileSystem extends EventEmitter {
 
                 let dayDir = moment(dir, "YYYY-MM-DD");
 
+                if(!dayDir.isValid()){
+                    countDirs--;
+                    return;
+                }
+
                 if ((dateLastDir - dayDir) > 0) {
                     countDirs--;
                     return;
@@ -534,131 +609,14 @@ class FileSystem extends EventEmitter {
     }
 
     deleteDone(days, callback) {
-
-        days = days || 0;
-
-        let callbackDone = false;
-
-        function doCallback(err, data) {
-            if (callbackDone) return;
-            callbackDone = true;
-            callback(err, data);
-        }
-
-        let dateLastDir = moment(sumDate(1, new Date()));
-
-        if (days > 0) {
-            dateLastDir = moment(subtractDate(days, new Date()));
-        }
-
-
-        fs.readdir(this.uriDone, 'utf-8', (err, dirs) => {
-            if (err) {
-                doCallback(err);
-                return;
-            }
-
-            var countDirs = dirs.length;
-
-            if (countDirs === 0) {
-                doCallback(err);
-                return;
-            }
-
-            dirs.forEach(dir => {
-
-                let dayDir = moment(dir, "YYYY-MM-DD");
-
-                if (dateLastDir < dayDir) {
-                    countDirs--;
-                    return;
-                }
-
-                let urlDir = pathLib.join(this.uriDone, dir);
-
-                deleteFilesDir(urlDir, (err) => {
-                    if (err) {
-                        doCallback(err);
-                        return;
-                    }
-
-                    fs.rmdir(urlDir, (err) => {
-                        countDirs--;
-
-                        if (countDirs === 0) {
-                            doCallback(err);
-                        }
-                    });
-
-
-                });
-            });
+        deleteFilesDay(days, this.uriDone, (err)=>{
+            callback(err);
         });
     }
 
     deleteError(days, callback) {
-        days = days || 0;
-
-        let callbackDone = false;
-
-        function doCallback(err, data) {
-            if (callbackDone) return;
-            callbackDone = true;
-            callback(err, data);
-        }
-
-        let dateLastDir;
-
-        if (days > 0) {
-            dateLastDir = moment(subtractDate(days, new Date()));
-        } else {
-            dateLastDir = moment(sumDate(1, new Date()));
-        }
-
-        fs.readdir(this.uriError, 'utf-8', (err, dirs) => {
-            if (err) {
-                doCallback(err);
-                return;
-            }
-
-            var countDirs = dirs.length;
-
-            if (countDirs === 0) {
-                doCallback(err);
-                return;
-            }
-
-            dirs.forEach(dir => {
-
-                let dayDir = moment(dir, "YYYY-MM-DD");
-
-                if (dateLastDir < dayDir) {
-                    countDirs--;
-                    return;
-                }
-
-                if (countDirs === 0) {
-                    doCallback(null);
-                    return;
-                }
-
-                let urlDir = pathLib.join(this.uriError, dir);
-
-                deleteFilesDir(urlDir, (err) => {
-                    if (err) {
-                        doCallback(err);
-                        return;
-                    }
-
-                    fs.rmdir(urlDir, (err) => {
-                        countDirs--;
-
-                        if (countDirs === 0) {
-                            doCallback(err);
-                        }
-                    });
-                });
-            });
+        deleteFilesDay(days, this.uriError, (err)=>{
+            callback(err);
         });
     }
 

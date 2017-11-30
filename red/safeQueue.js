@@ -61,7 +61,14 @@ module.exports = function (RED) {
 
             if (this.autoStartJob) {
                 node.startMessages();
+                return;
             }
+
+            this.listNodeOut.forEach(out => {
+                if(!out.outInProcess){
+                    out.setOutStopProcess();
+                }
+            });
 
         });
 
@@ -274,6 +281,19 @@ module.exports = function (RED) {
         node.registerOut = function registerOut(nodeOut) {
             this.listNodeOut.push(nodeOut);
         }
+
+        node.allOutNodeStopped = function allOutNodeStopped() {
+
+            var inStop = true;
+
+            this.listNodeOut.forEach(out => {
+               if(!out.outInStop){
+                   inStop = false;
+               }
+            });
+
+            return inStop;
+        }
         //---> Functions <---
 
         //--> Function Storage <--
@@ -359,6 +379,7 @@ module.exports = function (RED) {
         var node = this;
 
         this.outInProcess = false;
+        this.outInStop = false;
 
         RED.nodes.createNode(this, values);
 
@@ -372,6 +393,7 @@ module.exports = function (RED) {
         node.config.registerOut(node);
 
         node.setOutStopProcess = function setOutStopProcess() {
+            this.outInStop = true;
             node.status({
                 fill: "yellow",
                 shape: "dot",
@@ -389,6 +411,7 @@ module.exports = function (RED) {
         }
 
         node.setOutFree = function setOutFree() {
+            this.outInStop = false;
             this.outInProcess = false;
             node.status({
                 fill: "green",
@@ -527,8 +550,13 @@ module.exports = function (RED) {
 
                     break;
 
-                //TODO VERIFICAR CASOS DE STOP -> START
                 case 'start-process':
+
+                    if(!node.config.allOutNodeStopped()){
+                        node.warn(RED._("safe-queue.message-log.out-process"));
+                        return;
+                    }
+
                     node.config.stopProcess = false;
 
                     node.config.listNodeOut.forEach(out => {
@@ -544,11 +572,22 @@ module.exports = function (RED) {
                     break;
 
                 case 'stop-process':
+
                     node.config.stopProcess = true;
+
+                    node.config.listNodeOut.forEach(out => {
+                        if(!out.outInProcess){
+                            out.setOutStopProcess();
+                        }
+                    });
 
                     node.log(RED._("safe-queue.message-log.stop-output"));
 
                     node.send(msg);
+                    break;
+
+                default:
+                    node.warn(RED._("safe-queue.message-errors.no-operation"));
                     break;
             }
         });
