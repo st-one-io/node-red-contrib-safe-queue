@@ -43,8 +43,19 @@ limitations under the License.
 </script>
 
 <script type="text/x-red" data-help-name="queue in">
-    <p>SafeQueue In</p>
-
+    <p>Node responsible for receiving the messages and storing them on the queue.</p>
+    <h3>Input</h3>
+    <p>The <b>SafeQueue In</b> saves the whole message and uniquely identifies it by the _msgid property.</p>
+    <h3>Output</h3>
+    <p><b>on success:</b> The SafeQueue In forwards the message as received.</p>
+    <p><b>on error:</b> If the “send on error” option is not marked, this node won’t forward the message.
+        With the option marked, an error property will be added  to the message and it will be send.</p>
+    <p>The original message is forwarded after being safely stored. In case of a failure, only if the option
+        “send on error” is enabled, an “msg.error” property is added to the original message and it’s forwarded.</p>
+    <h3>Details</h3>
+    <p><b>config parameter:</b> the queue to operate on.</p>
+    <p><b>error send parameter:</b> if marked, forwards the original message adding a “msg.error” property.
+        If not marked, do not forward the original message in case of error.</p>
 </script>
 
 <script type="text/javascript">
@@ -110,10 +121,11 @@ limitations under the License.
 </script>
 
 <script type="text/x-red" data-help-name="queue out">
-    <p>SafeQueue Out</p>
-    <p>msg.id : Chave única de identificação da mensagem, usado pelo "SafeQueue ACK" </p>
-    <p>msg.payload : Mensagem transmitida </p>
-
+    <p>Node responsible for sending stored messages on queue for further processing.</p>
+    <h3>Output</h3>
+    <p>The original message as received on <b>SafeQueue In</b>.</p>
+    <h3>Details</h3>
+    <p><b>config parameter:</b> the queue to operate on.</p>
 </script>
 
 <script type="text/javascript">
@@ -204,8 +216,26 @@ limitations under the License.
 </script>
 
 <script type="text/x-red" data-help-name="queue control">
-    <p>SafeQueue Control</p>
-
+    <p>Node to control and query the queue.</p>
+    <h3>Input</h3>
+    <p>Triggers the action defined in the configuration.</p>
+    <h3>Details</h3>
+    <p><b>config parameter:</b> the queue to operate on.</p>
+    <b>operation parameter:</b>
+    <p><b>Queue size:</b> check how many items exists on the queue, displays the results on status and send the result
+        as “msg.payload”.</p>
+    <p><b>Done size:</b> check how many items have already been processed with success, displays the results on status
+        and send the result as “msg.payload”.</p>
+    <p><b>Error size:</b> check how many items have already been processed with failure, displays the results on status
+        and send the result as “msg.payload”.</p>
+    <p><b>Delete done:</b> delete the items that have already been processed with success and that are older than the
+        amount of days set on “days” parameter, or delete all items if the “days” parameter is equal to 0.</p>
+    <p><b>Delete error:</b> delete the items that have already been processed with failure and that are older than the
+        amount of days set on “days” parameter, or delete all items if the “days” parameter is equal to 0.</p>
+    <p><b>Resend errors:</b> move items back to the queue (retry) that have already been processed with failure newer
+        than the amount of days set on “days” parameter, or move all items if the “days” parameter is equalto 0.</p>
+    <p><b>Stop process:</b> stop sending messages through SafeQueue Out.</p>
+    <p><b>Start process:</b> start sending messages through SafeQueue Out.</p>
 </script>
 
 <script type="text/javascript">
@@ -292,10 +322,14 @@ limitations under the License.
 </script>
 
 <script type="text/x-red" data-help-name="queue ack">
-    <p>SafeQueue Acknowledge</p>
-    <p>Para confirmação do envio da mensagem esse nó precisa receber no msg.id : a chave única de identificação da mensagem
-        enviada pelo "SafeQueue OUT" no campo msg.id</p>
-
+    <p>Node responsible for the acknowledement of messages sent by <b>SafeQueue Out</b>. All the messages are identified
+        by the “msg,_msgid” property.</p>
+    <p>This node presents two answers for queue, success or failure. A failure is detected either by a timeout
+        (as configured on the queue configuration) or by the presence of a “msg.error” property.</p>
+    <h3>Input</h3>
+    <p>The <b>SafeQueue ACK</b> processes the information received on <b>msg: msg._msgid</b> and <b>msg.error</b>.</p>
+    <h3>Details</h3>
+    <p><b>config parameter:</b> the queue to operate on.</p>
 </script>
 
 <script type="text/javascript">
@@ -420,8 +454,14 @@ limitations under the License.
 </script>
 
 <script type="text/x-red" data-help-name="queue config">
-    <p>SafeQueue Config</p>
-
+    <p>Node responsible for configuring the queue operation.</p>
+    <h3>Details</h3>
+    <p><b>Storage type parameter:</b> defines what type storage the queue use.</p>
+    <p><b>Path parameter:</b> defines the path used to persist the queue’s data.</p>
+    <p><b>Timeout ACK parameter:</b> defines how long to wait before considering a message to have failed. If set 0,
+        the timeout is disabled.</p>
+    <p><b>Start job at start:</b> if marked, the queue processing starts with node-red, if not marked, it is necessary
+        to send the command <b>Start Process</b> on <b>SafeQueue Control</b>.</p>
 </script>
 
 <script type="text/javascript">

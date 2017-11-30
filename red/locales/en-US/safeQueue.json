@@ -2,7 +2,7 @@
   "safe-queue": {
     "in": {
       "label": {
-        "send-error": "Send .error?"
+        "send-error": "Send on error?"
       },
       "define": {
         "name": "queue in"
