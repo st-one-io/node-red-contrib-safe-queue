@@ -39,7 +39,9 @@ module.exports = function (RED) {
 
         this.autoStartJob = config.startJob;
 
-        let infoPath = {'path': config.path};
+        let infoPath = {
+            'path': config.path
+        };
 
         if (this.storageMode == 'fs') {
             this.storage = new FileSystem(infoPath);
@@ -47,8 +49,12 @@ module.exports = function (RED) {
             node.error("Error in node configuration.");
             return;
         }
+        
+        RED.nodes.createNode(node, config);
 
-        RED.nodes.createNode(this, config);
+        node.on('close', () => {
+            node.storage.close();
+        });
 
         this.storage.on('newMessage', () => {
             node.processQueue();
@@ -65,7 +71,7 @@ module.exports = function (RED) {
             }
 
             this.listNodeOut.forEach(out => {
-                if(!out.outInProcess){
+                if (!out.outInProcess) {
                     out.setOutStopProcess();
                 }
             });
@@ -161,7 +167,7 @@ module.exports = function (RED) {
 
             let message = {};
 
-            if(this.timeOut != 0){
+            if (this.timeOut != 0) {
                 itemQueue.timer = setTimeout(node.onError, this.timeOut, itemQueue.keyMessage);
             }
 
@@ -221,7 +227,7 @@ module.exports = function (RED) {
 
             let itemQueue = node.virtualQueue.get(keyMessage);
 
-            if(!itemQueue){
+            if (!itemQueue) {
                 return;
             }
 
@@ -229,7 +235,7 @@ module.exports = function (RED) {
 
             itemQueue.nodeOut.setOutFree();
 
-            if(this.timeOut != 0){
+            if (this.timeOut != 0) {
                 clearTimeout(itemQueue.timer);
             }
 
@@ -254,13 +260,13 @@ module.exports = function (RED) {
 
             let itemQueue = this.virtualQueue.get(keyMessage);
 
-            if(!itemQueue){
+            if (!itemQueue) {
                 return;
             }
 
             itemQueue.nodeOut.setOutFree();
 
-            if(this.timeOut != 0){
+            if (this.timeOut != 0) {
                 clearTimeout(itemQueue.timer);
             }
 
@@ -287,9 +293,9 @@ module.exports = function (RED) {
             var inStop = true;
 
             this.listNodeOut.forEach(out => {
-               if(!out.outInStop){
-                   inStop = false;
-               }
+                if (!out.outInStop) {
+                    inStop = false;
+                }
             });
 
             return inStop;
@@ -325,7 +331,7 @@ module.exports = function (RED) {
 
     RED.nodes.registerType("queue config", SafeQueueConfig);
 
-// ------------- SafeQueue In (queue in) ------------
+    // ------------- SafeQueue In (queue in) ------------
     function SafeQueueIn(values) {
 
         var node = this;
@@ -347,7 +353,7 @@ module.exports = function (RED) {
                     msg.error = err;
                     node.error(msg.error);
 
-                    if(values.sendError){
+                    if (values.sendError) {
                         node.send(msg);
                     }
 
@@ -373,7 +379,7 @@ module.exports = function (RED) {
 
     RED.nodes.registerType("queue in", SafeQueueIn);
 
-// ------------- SafeQueue Out (queue out) ------------
+    // ------------- SafeQueue Out (queue out) ------------
     function SafeQueueOut(values) {
 
         var node = this;
@@ -427,7 +433,7 @@ module.exports = function (RED) {
 
     RED.nodes.registerType("queue out", SafeQueueOut);
 
-// ------------- SafeQueue Control (queue control) ------------
+    // ------------- SafeQueue Control (queue control) ------------
     function SafeQueueControl(values) {
 
         var node = this;
@@ -552,7 +558,7 @@ module.exports = function (RED) {
 
                 case 'start-process':
 
-                    if(!node.config.allOutNodeStopped()){
+                    if (!node.config.allOutNodeStopped()) {
                         node.warn(RED._("safe-queue.message-log.out-process"));
                         return;
                     }
@@ -576,7 +582,7 @@ module.exports = function (RED) {
                     node.config.stopProcess = true;
 
                     node.config.listNodeOut.forEach(out => {
-                        if(!out.outInProcess){
+                        if (!out.outInProcess) {
                             out.setOutStopProcess();
                         }
                     });
@@ -595,7 +601,7 @@ module.exports = function (RED) {
 
     RED.nodes.registerType("queue control", SafeQueueControl);
 
-// ------------- SafeQueue Acknowledge (queue ack) ------------
+    // ------------- SafeQueue Acknowledge (queue ack) ------------
     function SafeQueueAcknowledge(values) {
 
         var node = this;
