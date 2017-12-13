@@ -33,6 +33,8 @@ module.exports = function (RED) {
         this.stopProcess = false;
         this.initProcess = false;
 
+        this.onClose = false;
+
         this.timeOut = config.timeoutAck;
 
         this.storageMode = config.storage;
@@ -49,11 +51,23 @@ module.exports = function (RED) {
             node.error("Error in node configuration.");
             return;
         }
-        
+
         RED.nodes.createNode(node, config);
 
-        node.on('close', () => {
+        node.on('close', (done) => {
+
+            node.onClose = true;
+
             node.storage.close();
+
+            this.virtualQueue.forEach((value, key) => {
+                clearTimeout(value.timer);
+            });
+
+            this.virtualQueue.clear();
+            this.messageProcess.clear();
+
+            done();
         });
 
         this.storage.on('newMessage', () => {
@@ -145,6 +159,10 @@ module.exports = function (RED) {
         }
 
         node.processQueue = function processQueue() {
+
+            if(node.onClose){
+                return;
+            }
 
             var nodeOut = node.getNodeOut();
 
