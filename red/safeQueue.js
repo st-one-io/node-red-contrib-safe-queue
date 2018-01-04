@@ -21,7 +21,32 @@ module.exports = function (RED) {
 
     // ------------- SafeQueue Config (queue config) ------------
     function SafeQueueConfig(config) {
+
         var node = this;
+
+        RED.nodes.createNode(node, config);
+
+        var equalPath = false;
+
+        RED.nodes.eachNode((nodes) => {
+
+            if(nodes.type == 'queue config'){
+
+                if(config.id === nodes.id){
+                    return;
+                }
+
+                if(config.path === nodes.path){
+                    node.error("Path in use. Path: " + config.path );            
+                    equalPath = true;
+                }
+            }            
+        });
+
+        if(equalPath){
+            node.error("Path in use. Path: " + config.path );
+            return;
+        }
 
         this.name = config.name;
 
@@ -52,13 +77,9 @@ module.exports = function (RED) {
             return;
         }
 
-        RED.nodes.createNode(node, config);
-
         node.on('close', (done) => {
 
             node.onClose = true;
-
-            node.storage.close();
 
             this.virtualQueue.forEach((value, key) => {
                 clearTimeout(value.timer);
@@ -66,6 +87,8 @@ module.exports = function (RED) {
 
             this.virtualQueue.clear();
             this.messageProcess.clear();
+
+            node.storage.close();
 
             done();
         });
@@ -97,15 +120,11 @@ module.exports = function (RED) {
             node.initProcess = true;
 
             if (node.virtualQueue.size > 0) {
-                for (var key of node.virtualQueue.keys()) {
-                    node.virtualQueue.delete(key);
-                }
+                node.virtualQueue.clear();
             }
 
             if (node.messageProcess.size > 0) {
-                for (var key of node.messageProcess.keys()) {
-                    node.messageProcess.delete(key);
-                }
+                node.messageProcess.clear();
             }
 
             this.storage.getMessageList((err, list) => {
@@ -160,7 +179,7 @@ module.exports = function (RED) {
 
         node.processQueue = function processQueue() {
 
-            if(node.onClose){
+            if (node.onClose) {
                 return;
             }
 
@@ -243,6 +262,10 @@ module.exports = function (RED) {
 
         node.onError = function onError(keyMessage) {
 
+            if (node.onClose) {
+                return;
+            }
+
             let itemQueue = node.virtualQueue.get(keyMessage);
 
             if (!itemQueue) {
@@ -275,6 +298,10 @@ module.exports = function (RED) {
         }
 
         node.onSuccess = function onSuccess(keyMessage) {
+
+            if (node.onClose) {
+                return;
+            }
 
             let itemQueue = this.virtualQueue.get(keyMessage);
 
