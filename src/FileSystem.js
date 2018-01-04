@@ -238,7 +238,7 @@ function deleteFilesDay(days, path, callback) {
         dirs.forEach(dir => {
             let dayDir = moment(dir, "YYYY-MM-DD");
 
-            if(!dayDir.isValid()){
+            if (!dayDir.isValid()) {
                 countDirs--;
                 return;
             }
@@ -366,7 +366,9 @@ class FileSystem extends EventEmitter {
 
         var uriFile = pathLib.join(this.uriQueue, obj.keyMessage + extension);
 
-        fs.writeFile(uriFile, JSON.stringify(obj), {flags: 'rs+'}, (err) => {
+        fs.writeFile(uriFile, JSON.stringify(obj), {
+            flags: 'rs+'
+        }, (err) => {
             if (err) {
                 mkdirp(this.uriQueue, (err, make) => {
                     if (err) {
@@ -374,7 +376,9 @@ class FileSystem extends EventEmitter {
                         callback(err);
                     }
 
-                    fs.writeFile(uriFile, JSON.stringify(obj), {flags: 'rs+'}, (err) => {
+                    fs.writeFile(uriFile, JSON.stringify(obj), {
+                        flags: 'rs+'
+                    }, (err) => {
                         if (err) {
                             callback(err);
                             return;
@@ -466,14 +470,13 @@ class FileSystem extends EventEmitter {
                 } else {
                     //Mover para erro
                     let newPath = pathLib.join(this.uriError, getDateString());
-                    moveFile(baseName, extName, this.uriQueue, newPath, (err) => {
-                    });
+                    moveFile(baseName, extName, this.uriQueue, newPath, (err) => {});
                 }
             }
             callback(null, listFiles);
         });
     }
-
+    
     resendErrors(days, callback) {
 
         days = days || 0;
@@ -512,7 +515,7 @@ class FileSystem extends EventEmitter {
 
                 let dayDir = moment(dir, "YYYY-MM-DD");
 
-                if(!dayDir.isValid()){
+                if (!dayDir.isValid()) {
                     countDirs--;
                     return;
                 }
@@ -580,8 +583,7 @@ class FileSystem extends EventEmitter {
                                     countFiles--;
 
                                     if (countFiles === 0) {
-                                        fs.rmdir(urlDir, (err) => {
-                                        });
+                                        fs.rmdir(urlDir, (err) => {});
                                     }
 
                                     if (totalFiles === 0 && countDirs === 0) {
@@ -609,13 +611,13 @@ class FileSystem extends EventEmitter {
     }
 
     deleteDone(days, callback) {
-        deleteFilesDay(days, this.uriDone, (err)=>{
+        deleteFilesDay(days, this.uriDone, (err) => {
             callback(err);
         });
     }
 
     deleteError(days, callback) {
-        deleteFilesDay(days, this.uriError, (err)=>{
+        deleteFilesDay(days, this.uriError, (err) => {
             callback(err);
         });
     }
