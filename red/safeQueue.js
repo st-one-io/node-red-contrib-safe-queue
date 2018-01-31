@@ -185,13 +185,13 @@ module.exports = function (RED) {
 
             var nodeOut = node.getNodeOut();
 
-            if (nodeOut == null) {
+            if (!nodeOut) {
                 return;
             }
 
             var keyItemQueue = node.getMessageProcess();
 
-            if (keyItemQueue == null) {
+            if (!keyItemQueue) {
                 return;
             }
 
@@ -200,34 +200,37 @@ module.exports = function (RED) {
             itemQueue.inProcess = true;
             itemQueue.nodeOut = nodeOut;
 
-            this.virtualQueue.set(itemQueue.keyMessage, itemQueue);
+            // Remover 
+            //this.virtualQueue.set(itemQueue.keyMessage, itemQueue);
 
-            let message = {};
 
-            if (this.timeOut != 0) {
-                itemQueue.timer = setTimeout(node.onError, this.timeOut, itemQueue.keyMessage);
+            // Remover
+            //let message = {};
+
+            if (node.timeOut != 0) {
+                itemQueue.timer = setTimeout(node.onError, node.timeOut, itemQueue.keyMessage);
             }
 
 
             nodeOut.setOutInProcess();
 
-            if (this.messageProcess.has(itemQueue.keyMessage)) {
-                message = this.messageProcess.get(itemQueue.keyMessage);
+            if (node.messageProcess.has(itemQueue.keyMessage)) {
+                let message = node.messageProcess.get(itemQueue.keyMessage);
                 nodeOut.sendMessage(message.message);
             } else {
-                this.storage.getMessage(itemQueue.keyMessage, (err, data) => {
+                node.storage.getMessage(itemQueue.keyMessage, (err, data) => {
                     if (err) {
+                        // Reportar error 
                         return;
                     }
 
                     let itemMessage = {};
-                    itemMessage.keyMessage = message._msgid;
-                    itemMessage.message = message.message;
+                    itemMessage.keyMessage = data._msgid;
+                    itemMessage.message = data.message;
 
-                    this.messageProcess.set(itemMessage.keyMessage, itemMessage);
+                    node.messageProcess.set(itemMessage.keyMessage, itemMessage);
 
-                    message = data;
-                    nodeOut.sendMessage(message.message);
+                    nodeOut.sendMessage(data.message);
                 });
             }
         }
@@ -276,9 +279,7 @@ module.exports = function (RED) {
 
             itemQueue.nodeOut.setOutFree();
 
-            if (this.timeOut != 0) {
-                clearTimeout(itemQueue.timer);
-            }
+            clearTimeout(itemQueue.timer);
 
             if (node.stopProcess) {
                 itemQueue.nodeOut.setOutStopProcess();
