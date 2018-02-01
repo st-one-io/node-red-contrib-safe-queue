@@ -71,7 +71,7 @@ module.exports = function (RED) {
         };
 
         if (node.storageMode == 'fs') {
-            mode.storage = new FileSystem(infoPath);
+            node.storage = new FileSystem(infoPath);
         } else {
             node.error("Error in node configuration.");
             return;
