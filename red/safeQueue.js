@@ -16,6 +16,16 @@
 
 const FileSystem = require('../src/FileSystem.js');
 
+function generateUUID() {
+    let d = new Date().getTime();
+    let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        let r = (d + Math.random()*16)%16 | 0;
+        d = Math.floor(d/16);
+        return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+    });
+    return uuid;
+};
+
 module.exports = function (RED) {
     "use strict";
 
@@ -145,7 +155,7 @@ module.exports = function (RED) {
                         itemQueue.timer = null;
 
                         let itemMessage = {};
-                        itemMessage.keyMessage = data.message._msgid;
+                        itemMessage.keyMessage = data.message.uuid;
                         itemMessage.message = data.message;
 
                         node.virtualQueue.set(itemQueue.keyMessage, itemQueue);
@@ -159,14 +169,22 @@ module.exports = function (RED) {
 
         //---> Functions <---
         node.receiveMessage = function receiveMessage(message, callback) {
+
+            //A keyMessage das mensagens passa a ser um uuid.
+            //o uuid é passada em msg.uuid
+
+            let newID = generateUUID();
+
+            message.uuid = newID;
+
             let itemQueue = {};
-            itemQueue.keyMessage = message._msgid;
+            itemQueue.keyMessage = newID;
             itemQueue.inProcess = false;
             itemQueue.nodeOut = null;
             itemQueue.timer = null;
 
             let itemMessage = {};
-            itemMessage.keyMessage = message._msgid;
+            itemMessage.keyMessage = newID;
             itemMessage.message = message;
 
             node.virtualQueue.set(itemQueue.keyMessage, itemQueue);
@@ -217,7 +235,7 @@ module.exports = function (RED) {
                     }
 
                     let itemMessage = {};
-                    itemMessage.keyMessage = data._msgid;
+                    itemMessage.keyMessage = data.uuid;
                     itemMessage.message = data.message;
 
                     node.messageProcess.set(itemMessage.keyMessage, itemMessage);
@@ -656,12 +674,15 @@ module.exports = function (RED) {
             return;
         }
 
+        //Safe-Queue não utiliza mais o msg._msgid
+        //agora utiliza msg.uuid
+
         node.on('input', function (msg) {
             if (msg.error) {
-                node.config.onError(msg._msgid);
+                node.config.onError(msg.uuid);
                 return;
             }
-            node.config.onSuccess(msg._msgid);
+            node.config.onSuccess(msg.uuid);
         });
     }
 
