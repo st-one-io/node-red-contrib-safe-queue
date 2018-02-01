@@ -24,7 +24,7 @@ module.exports = function (RED) {
 
         var node = this;
 
-        RED.nodes.createNode(node, config);
+        RED.nodes.createNode(this, config);
 
         var equalPath = false;
 
@@ -70,8 +70,8 @@ module.exports = function (RED) {
             'path': config.path
         };
 
-        if (this.storageMode == 'fs') {
-            this.storage = new FileSystem(infoPath);
+        if (node.storageMode == 'fs') {
+            mode.storage = new FileSystem(infoPath);
         } else {
             node.error("Error in node configuration.");
             return;
@@ -81,33 +81,33 @@ module.exports = function (RED) {
 
             node.onClose = true;
 
-            this.virtualQueue.forEach((value, key) => {
+            node.virtualQueue.forEach((value, key) => {
                 clearTimeout(value.timer);
             });
 
-            this.virtualQueue.clear();
-            this.messageProcess.clear();
+            node.virtualQueue.clear();
+            node.messageProcess.clear();
 
             node.storage.close();
 
             done();
         });
 
-        this.storage.on('newMessage', () => {
+        node.storage.on('newMessage', () => {
             node.processQueue();
         });
 
-        this.storage.init((err) => {
+        node.storage.init((err) => {
             if (err) {
                 return;
             }
 
-            if (this.autoStartJob) {
+            if (node.autoStartJob) {
                 node.startMessages();
                 return;
             }
 
-            this.listNodeOut.forEach(out => {
+            node.listNodeOut.forEach(out => {
                 if (!out.outInProcess) {
                     out.setOutStopProcess();
                 }
@@ -127,13 +127,13 @@ module.exports = function (RED) {
                 node.messageProcess.clear();
             }
 
-            this.storage.getMessageList((err, list) => {
+            node.storage.getMessageList((err, list) => {
                 if (err) {
                     return;
                 }
 
                 list.forEach((item) => {
-                    this.storage.getMessage(item, (err, data) => {
+                    node.storage.getMessage(item, (err, data) => {
                         if (err) {
                             return;
                         }
@@ -148,8 +148,8 @@ module.exports = function (RED) {
                         itemMessage.keyMessage = data.message._msgid;
                         itemMessage.message = data.message;
 
-                        this.virtualQueue.set(itemQueue.keyMessage, itemQueue);
-                        this.messageProcess.set(itemMessage.keyMessage, itemMessage);
+                        node.virtualQueue.set(itemQueue.keyMessage, itemQueue);
+                        node.messageProcess.set(itemMessage.keyMessage, itemMessage);
 
                         node.processQueue();
                     });
@@ -169,10 +169,10 @@ module.exports = function (RED) {
             itemMessage.keyMessage = message._msgid;
             itemMessage.message = message;
 
-            this.virtualQueue.set(itemQueue.keyMessage, itemQueue);
-            this.messageProcess.set(itemMessage.keyMessage, itemMessage);
+            node.virtualQueue.set(itemQueue.keyMessage, itemQueue);
+            node.messageProcess.set(itemMessage.keyMessage, itemMessage);
 
-            this.storage.saveMessage(itemMessage, (err) => {
+            node.storage.saveMessage(itemMessage, (err) => {
                 callback(err);
             });
         }
@@ -195,22 +195,14 @@ module.exports = function (RED) {
                 return;
             }
 
-            let itemQueue = this.virtualQueue.get(keyItemQueue);
+            let itemQueue = node.virtualQueue.get(keyItemQueue);
 
             itemQueue.inProcess = true;
             itemQueue.nodeOut = nodeOut;
 
-            // Remover 
-            //this.virtualQueue.set(itemQueue.keyMessage, itemQueue);
-
-
-            // Remover
-            //let message = {};
-
             if (node.timeOut != 0) {
                 itemQueue.timer = setTimeout(node.onError, node.timeOut, itemQueue.keyMessage);
             }
-
 
             nodeOut.setOutInProcess();
 
@@ -220,7 +212,7 @@ module.exports = function (RED) {
             } else {
                 node.storage.getMessage(itemQueue.keyMessage, (err, data) => {
                     if (err) {
-                        // Reportar error 
+                        node.error(`${RED._("safe-queue.message-errors.fail-read-message")}: ${itemQueue.keyMessage}`);
                         return;
                     }
 
@@ -239,7 +231,7 @@ module.exports = function (RED) {
 
             //Fuction set stop outputs and return null for stop processQueue()
             if (node.stopProcess) {
-                this.listNodeOut.forEach(out => {
+                node.listNodeOut.forEach(out => {
                     if (!out.outInProcess) {
                         out.setOutStopProcess();
                     }
@@ -247,7 +239,7 @@ module.exports = function (RED) {
                 return null;
             }
 
-            return this.listNodeOut.find(out => {
+            return node.listNodeOut.find(out => {
                 if (!out.outInProcess) {
                     return out;
                 }
@@ -255,7 +247,7 @@ module.exports = function (RED) {
         }
 
         node.getMessageProcess = function getMessageProcess() {
-            for (var [key, value] of this.virtualQueue.entries()) {
+            for (var [key, value] of node.virtualQueue.entries()) {
                 if (!value.inProcess) {
                     return key;
                 }
@@ -277,13 +269,15 @@ module.exports = function (RED) {
 
             node.warn(`${RED._("safe-queue.message-errors.fail-message-process")}: ${itemQueue.keyMessage}`);
 
-            itemQueue.nodeOut.setOutFree();
-
             clearTimeout(itemQueue.timer);
 
-            if (node.stopProcess) {
-                itemQueue.nodeOut.setOutStopProcess();
-            }
+            if(itemQueue.nodeOut){
+                itemQueue.nodeOut.setOutFree();
+
+                if (node.stopProcess) {
+                    itemQueue.nodeOut.setOutStopProcess();
+                }
+            }          
 
             node.messageProcess.delete(itemQueue.keyMessage);
             node.virtualQueue.delete(itemQueue.keyMessage);
@@ -304,21 +298,22 @@ module.exports = function (RED) {
                 return;
             }
 
-            let itemQueue = this.virtualQueue.get(keyMessage);
+            let itemQueue = node.virtualQueue.get(keyMessage);
 
             if (!itemQueue) {
                 return;
             }
 
-            itemQueue.nodeOut.setOutFree();
+            clearTimeout(itemQueue.timer);
 
-            if (this.timeOut != 0) {
-                clearTimeout(itemQueue.timer);
-            }
+            if(itemQueue.nodeOut){
+                itemQueue.nodeOut.setOutFree();
 
-            if (node.stopProcess) {
-                itemQueue.nodeOut.setOutStopProcess();
-            }
+                if (node.stopProcess) {
+                    itemQueue.nodeOut.setOutStopProcess();
+                }
+            }   
+
             node.messageProcess.delete(itemQueue.keyMessage);
             node.virtualQueue.delete(itemQueue.keyMessage);
 
@@ -331,14 +326,14 @@ module.exports = function (RED) {
         }
 
         node.registerOut = function registerOut(nodeOut) {
-            this.listNodeOut.push(nodeOut);
+            node.listNodeOut.push(nodeOut);
         }
 
         node.allOutNodeStopped = function allOutNodeStopped() {
 
             var inStop = true;
 
-            this.listNodeOut.forEach(out => {
+            node.listNodeOut.forEach(out => {
                 if (!out.outInStop) {
                     inStop = false;
                 }
@@ -350,27 +345,27 @@ module.exports = function (RED) {
 
         //--> Function Storage <--
         node.deleteDone = function deleteDone(days, callback) {
-            this.storage.deleteDone(days, callback);
+            node.storage.deleteDone(days, callback);
         }
 
         node.deleteError = function deleteError(days, callback) {
-            this.storage.deleteError(days, callback);
+            node.storage.deleteError(days, callback);
         }
 
         node.resendErrors = function resendErrors(days, callback) {
-            this.storage.resendErrors(days, callback);
+            node.storage.resendErrors(days, callback);
         }
 
         node.getQueueSize = function getQueueSize(callback) {
-            this.storage.getQueueSize(callback);
+            node.storage.getQueueSize(callback);
         }
 
         node.getDoneSize = function getDoneSize(callback) {
-            this.storage.getDoneSize(callback);
+            node.storage.getDoneSize(callback);
         }
 
         node.getErrorSize = function getErrorSize(callback) {
-            this.storage.getErrorSize(callback);
+            node.storage.getErrorSize(callback);
         }
         //--> Function Storage <--
     }
@@ -430,8 +425,8 @@ module.exports = function (RED) {
 
         var node = this;
 
-        this.outInProcess = false;
-        this.outInStop = false;
+        node.outInProcess = false;
+        node.outInStop = false;
 
         RED.nodes.createNode(this, values);
 
@@ -445,7 +440,7 @@ module.exports = function (RED) {
         node.config.registerOut(node);
 
         node.setOutStopProcess = function setOutStopProcess() {
-            this.outInStop = true;
+            node.outInStop = true;
             node.status({
                 fill: "yellow",
                 shape: "dot",
@@ -454,7 +449,7 @@ module.exports = function (RED) {
         }
 
         node.setOutInProcess = function setOutInProcess() {
-            this.outInProcess = true;
+            node.outInProcess = true;
             node.status({
                 fill: "blue",
                 shape: "dot",
@@ -463,8 +458,8 @@ module.exports = function (RED) {
         }
 
         node.setOutFree = function setOutFree() {
-            this.outInStop = false;
-            this.outInProcess = false;
+            node.outInStop = false;
+            node.outInProcess = false;
             node.status({
                 fill: "green",
                 shape: "dot",
@@ -484,7 +479,7 @@ module.exports = function (RED) {
 
         var node = this;
 
-        this.days = values.days;
+        node.days = values.days;
 
         RED.nodes.createNode(this, values);
 
@@ -567,7 +562,7 @@ module.exports = function (RED) {
                     break;
 
                 case 'delete-error':
-                    node.config.deleteError(this.days, (err) => {
+                    node.config.deleteError(node.days, (err) => {
                         if (err) {
                             node.error(err);
                             return;
@@ -580,7 +575,7 @@ module.exports = function (RED) {
                     break;
 
                 case 'delete-done':
-                    node.config.deleteDone(this.days, (err, results) => {
+                    node.config.deleteDone(node.days, (err, results) => {
                         if (err) {
                             node.error(err);
                             return;
@@ -593,7 +588,7 @@ module.exports = function (RED) {
                     break;
 
                 case 'resend-errors':
-                    node.config.resendErrors(this.days, (err) => {
+                    node.config.resendErrors(node.days, (err) => {
                         if (err) {
                             return;
                         }
