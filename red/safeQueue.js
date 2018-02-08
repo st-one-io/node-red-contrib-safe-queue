@@ -18,10 +18,10 @@ const FileSystem = require('../src/FileSystem.js');
 
 function generateUUID() {
     let d = new Date().getTime();
-    let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        let r = (d + Math.random()*16)%16 | 0;
-        d = Math.floor(d/16);
-        return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+    let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        let r = (d + Math.random() * 16) % 16 | 0;
+        d = Math.floor(d / 16);
+        return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
     });
     return uuid;
 };
@@ -40,21 +40,21 @@ module.exports = function (RED) {
 
         RED.nodes.eachNode((nodes) => {
 
-            if(nodes.type == 'queue config'){
+            if (nodes.type == 'queue config') {
 
-                if(config.id === nodes.id){
+                if (config.id === nodes.id) {
                     return;
                 }
 
-                if(config.path === nodes.path){
-                    node.error("Path in use. Path: " + config.path );            
+                if (config.path === nodes.path) {
+                    node.error("Path in use. Path: " + config.path);
                     equalPath = true;
                 }
-            }            
+            }
         });
 
-        if(equalPath){
-            node.error("Path in use. Path: " + config.path );
+        if (equalPath) {
+            node.error("Path in use. Path: " + config.path);
             return;
         }
 
@@ -75,6 +75,14 @@ module.exports = function (RED) {
         this.storageMode = config.storage;
 
         this.autoStartJob = config.startJob;
+
+        this.typeTimeout = config.typeTimeout;
+
+        this.typeError = config.typeError;
+
+        this.retryTimeout = config.retryTimeout;
+
+        this.retryError = config.retryError;
 
         let infoPath = {
             'path': config.path
@@ -153,6 +161,7 @@ module.exports = function (RED) {
                         itemQueue.inProcess = false;
                         itemQueue.nodeOut = null;
                         itemQueue.timer = null;
+                        itemQueue.resend = 0; //Atualização para reenvio automatico
 
                         let itemMessage = {};
                         itemMessage.keyMessage = data.message.uuid;
@@ -182,6 +191,7 @@ module.exports = function (RED) {
             itemQueue.inProcess = false;
             itemQueue.nodeOut = null;
             itemQueue.timer = null;
+            itemQueue.resend = 0; //Atualização para reenvio automatico
 
             let itemMessage = {};
             itemMessage.keyMessage = newID;
@@ -218,15 +228,26 @@ module.exports = function (RED) {
             itemQueue.inProcess = true;
             itemQueue.nodeOut = nodeOut;
 
+            node.transmitMessage(itemQueue);
+        }
+
+        node.transmitMessage = function transmitMessage(itemQueue) {
+
             if (node.timeOut != 0) {
-                itemQueue.timer = setTimeout(node.onError, node.timeOut, itemQueue.keyMessage);
+
+                let obj = {
+                    item: itemQueue.keyMessage,
+                    origin: "timeout"
+                };
+
+                itemQueue.timer = setTimeout(node.onError, node.timeOut, obj);
             }
 
-            nodeOut.setOutInProcess();
+            itemQueue.nodeOut.setOutInProcess();
 
             if (node.messageProcess.has(itemQueue.keyMessage)) {
                 let message = node.messageProcess.get(itemQueue.keyMessage);
-                nodeOut.sendMessage(message.message);
+                itemQueue.nodeOut.sendMessage(message.message);
             } else {
                 node.storage.getMessage(itemQueue.keyMessage, (err, data) => {
                     if (err) {
@@ -240,7 +261,7 @@ module.exports = function (RED) {
 
                     node.messageProcess.set(itemMessage.keyMessage, itemMessage);
 
-                    nodeOut.sendMessage(data.message);
+                    itemQueue.nodeOut.sendMessage(data.message);
                 });
             }
         }
@@ -273,7 +294,10 @@ module.exports = function (RED) {
             return null;
         }
 
-        node.onError = function onError(keyMessage) {
+        node.onError = function onError(obj) {
+
+            let keyMessage = obj.item;
+            let origin = obj.origin;
 
             if (node.onClose) {
                 return;
@@ -285,17 +309,70 @@ module.exports = function (RED) {
                 return;
             }
 
-            node.warn(`${RED._("safe-queue.message-errors.fail-message-process")}: ${itemQueue.keyMessage}`);
+            node.warn(`${RED._("safe-queue.message-errors.fail-message-process")}: ${itemQueue.keyMessage} - ${origin}`);
 
             clearTimeout(itemQueue.timer);
 
-            if(itemQueue.nodeOut){
+
+            if (origin == "timeout") {
+                switch (node.typeTimeout) {
+
+                    case 'retry-times':
+                        itemQueue.resend++;
+
+                        if (itemQueue.resend <= node.retryTimeout) {
+                            node.transmitMessage(itemQueue);
+                            return;
+                        }
+
+                        break;
+
+                    case 'retry-infinite':
+
+                        node.transmitMessage(itemQueue);
+                        return;
+
+                        break;
+
+                    case 'move-error':
+                        break;
+                }
+            }
+
+            if (origin == "error") {
+
+                switch (node.typeError) {
+
+                    case 'retry-times':
+                        itemQueue.resend++;
+
+                        if (itemQueue.resend <= node.retryError) {
+                            node.transmitMessage(itemQueue);
+                            return;
+                        }
+
+                        break;
+
+                    case 'retry-infinite':
+
+                        node.transmitMessage(itemQueue);
+                        return;
+
+                        break;
+
+                    case 'move-error':
+                        break;
+
+                }
+            }
+
+            if (itemQueue.nodeOut) {
                 itemQueue.nodeOut.setOutFree();
 
                 if (node.stopProcess) {
                     itemQueue.nodeOut.setOutStopProcess();
                 }
-            }          
+            }
 
             node.messageProcess.delete(itemQueue.keyMessage);
             node.virtualQueue.delete(itemQueue.keyMessage);
@@ -324,13 +401,13 @@ module.exports = function (RED) {
 
             clearTimeout(itemQueue.timer);
 
-            if(itemQueue.nodeOut){
+            if (itemQueue.nodeOut) {
                 itemQueue.nodeOut.setOutFree();
 
                 if (node.stopProcess) {
                     itemQueue.nodeOut.setOutStopProcess();
                 }
-            }   
+            }
 
             node.messageProcess.delete(itemQueue.keyMessage);
             node.virtualQueue.delete(itemQueue.keyMessage);
@@ -674,12 +751,18 @@ module.exports = function (RED) {
             return;
         }
 
-        //Safe-Queue não utiliza mais o msg._msgid
+        //Safe-Queue não utiliza mais o msg._msgid para identificação da mensagem
         //agora utiliza msg.uuid
 
         node.on('input', function (msg) {
             if (msg.error) {
-                node.config.onError(msg.uuid);
+
+                let obj = {
+                    item: msg.uuid,
+                    origin: "error"
+                };
+
+                node.config.onError(obj);
                 return;
             }
             node.config.onSuccess(msg.uuid);
