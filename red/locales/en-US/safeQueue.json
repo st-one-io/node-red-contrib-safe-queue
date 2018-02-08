@@ -28,7 +28,10 @@
       "label": {
         "storage": "Storage type",
         "timeout-ack": "Timeout ACK",
-        "start-job": "Start job at start?"
+        "start-job": "Start job at start?",
+        "on-timeout": "onTimeout",
+        "on-error": "onError",
+        "retry-times": "Times retry"
       },
       "define": {
         "name": "queue config"
@@ -75,6 +78,12 @@
       "start-process": "Start process",
       "stop-output": "Stop output",
       "out-process": "Node out in process"
+    },
+    "errors-options": {
+      "move-error": "Move to errors",
+      "retry-times": "Retry x times",
+      "retry-infinite": "Infinite retrys"
     }
+
   }
 }

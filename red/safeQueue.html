@@ -581,11 +581,51 @@ limitations under the License.
     </div>
 
     <div class="form-row">
+        <label for="node-config-input-typeTimeout">
+            <i class="fa fa-database"></i>
+            <span data-i18n="safe-queue.config.label.on-timeout"></span>
+        </label>
+        <select type="text" id="node-config-input-typeTimeout">
+            <option value="move-error" data-i18n="safe-queue.errors-options.move-error"></option>
+            <option value="retry-times" data-i18n="safe-queue.errors-options.retry-times"></option>
+            <option value="retry-infinite" data-i18n="safe-queue.errors-options.retry-infinite"></option>
+        </select>
+    </div>    
+
+    <div class="form-row">
         <label for="node-config-input-timeoutAck">
             <i class="fa fa-clock-o"></i>
             <span data-i18n="safe-queue.config.label.timeout-ack"></span>
         </label>
         <input type="text" id="node-config-input-timeoutAck"> ms
+    </div>
+
+    <div class="form-row" id="div-retry-timeout">
+        <label for="node-config-input-retryTimeout">
+            <i class="fa fa-clock-o"></i>
+            <span data-i18n="safe-queue.config.label.retry-times"></span>
+        </label>
+        <input type="text" id="node-config-input-retryTimeout">
+    </div>
+
+    <div class="form-row">
+        <label for="node-config-input-typeError">
+            <i class="fa fa-database"></i>
+            <span data-i18n="safe-queue.config.label.on-error"></span>
+        </label>
+        <select type="text" id="node-config-input-typeError">
+            <option value="move-error" data-i18n="safe-queue.errors-options.move-error"></option>
+            <option value="retry-times" data-i18n="safe-queue.errors-options.retry-times"></option>
+            <option value="retry-infinite" data-i18n="safe-queue.errors-options.retry-infinite"></option>
+        </select>
+    </div> 
+
+    <div class="form-row" id="div-retry-error">
+        <label for="node-config-input-retryError">
+            <i class="fa fa-clock-o"></i>
+            <span data-i18n="safe-queue.config.label.retry-times"></span>
+        </label>
+        <input type="text" id="node-config-input-retryError">
     </div>
 
     <div class="form-row">
@@ -653,6 +693,18 @@ limitations under the License.
             },
             startJob: {
                 value: true
+            },
+            typeTimeout: {
+                value: "move-error"
+            },
+            typeError: {
+                value: "move-error"
+            },
+            retryTimeout: {
+                value: 0
+            },
+            retryError: {
+                value: 0
             }
 
         },
@@ -662,6 +714,15 @@ limitations under the License.
         oneditprepare: function () {
 
             var self = this;
+
+            const input_typeTimeout = $('#node-config-input-typeTimeout');
+            const input_typeError = $('#node-config-input-typeError');
+
+            const input_retry_timeout = $('#node-config-input-retryTimeout');
+            const div_retry_timeout = $('#div-retry-timeout');
+
+            const input_retry_error = $('#node-config-input-retryError');
+            const div_retry_error = $('#div-retry-error');
 
             var storageMode = $('#node-config-input-storage');
             var fsRow = $('#node-config-queue-config-mode-fs');
@@ -683,6 +744,39 @@ limitations under the License.
 
             $("#node-config-input-timeoutAck").spinner({
                 min: 0
+            });
+
+            input_retry_timeout.spinner({
+                min: 0
+            });
+
+            input_retry_error.spinner({
+                min: 0
+            });
+
+            input_typeTimeout.change(function (){
+
+                let value = input_typeTimeout.val();
+                // console.log("VALUE: ", value);
+
+                if(value == 'retry-times'){
+                    div_retry_timeout.show();
+                }else{
+                    div_retry_timeout.hide();
+                }
+
+            });
+
+            input_typeError.change(function (){
+
+                let value = input_typeError.val();
+                // console.log("VALUE: ", value);
+
+                if(value == 'retry-times'){
+                    div_retry_error.show();
+                }else{
+                    div_retry_error.hide();
+                }
             });
         }
     });
