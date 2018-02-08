@@ -18,10 +18,10 @@ const FileSystem = require('../src/FileSystem.js');
 
 function generateUUID() {
     let d = new Date().getTime();
-    let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-        let r = (d + Math.random()*16)%16 | 0;
-        d = Math.floor(d/16);
-        return (c=='x' ? r : (r&0x3|0x8)).toString(16);
+    let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+        let r = (d + Math.random() * 16) % 16 | 0;
+        d = Math.floor(d / 16);
+        return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
     });
     return uuid;
 };
@@ -40,26 +40,26 @@ module.exports = function (RED) {
 
         RED.nodes.eachNode((nodes) => {
 
-            if(nodes.type == 'queue config'){
+            if (nodes.type == 'queue config') {
 
-                if(config.id === nodes.id){
+                if (config.id === nodes.id) {
                     return;
                 }
 
-                if(config.path === nodes.path){
-                    node.error("Path in use. Path: " + config.path );            
+                if (config.path === nodes.path) {
+                    node.error("Path in use. Path: " + config.path);
                     equalPath = true;
                 }
-            }            
+            }
         });
 
-        if(equalPath){
-            node.error("Path in use. Path: " + config.path );
+        if (equalPath) {
+            node.error("Path in use. Path: " + config.path);
             return;
         }
 
         this.name = config.name;
-        
+
         this.listNodeOut = [];
 
         this.virtualQueue = new Map();
@@ -79,15 +79,10 @@ module.exports = function (RED) {
         this.typeTimeout = config.typeTimeout;
 
         this.typeError = config.typeError;
-        
+
         this.retryTimeout = config.retryTimeout;
-        
+
         this.retryError = config.retryError;
-
-
-        // console.log("VARIAVEIS: ");
-        // console.log("typeTimeout: ", this.typeTimeout);
-        // console.log('typeError: ', this.typeError);
 
         let infoPath = {
             'path': config.path
@@ -233,21 +228,17 @@ module.exports = function (RED) {
             itemQueue.inProcess = true;
             itemQueue.nodeOut = nodeOut;
 
-            //
-            //Abrir codigo aqui // Passar  itemQueue -> C/ inProcess=true nodeOut valido 
-            //
-
-            node.transmitMessage(itemQueue);          
-
+            node.transmitMessage(itemQueue);
         }
 
-        node.transmitMessage = function transmitMessage(itemQueue){
-            
+        node.transmitMessage = function transmitMessage(itemQueue) {
+
             if (node.timeOut != 0) {
 
                 let obj = {
-                    item : itemQueue.keyMessage,
-                    origin: "timeout"};
+                    item: itemQueue.keyMessage,
+                    origin: "timeout"
+                };
 
                 itemQueue.timer = setTimeout(node.onError, node.timeOut, obj);
             }
@@ -322,76 +313,66 @@ module.exports = function (RED) {
 
             clearTimeout(itemQueue.timer);
 
-            //
-            //Entra repetição
-            //
 
-            if(origin == "timeout"){
-                switch(node.typeTimeout){
-                    
-                    case 'retry-times': 
-                        // console.log("retry-times - timeout");
+            if (origin == "timeout") {
+                switch (node.typeTimeout) {
 
+                    case 'retry-times':
                         itemQueue.resend++;
-                        
-                        if(itemQueue.resend <= node.retryTimeout){
+
+                        if (itemQueue.resend <= node.retryTimeout) {
                             node.transmitMessage(itemQueue);
                             return;
                         }
 
                         break;
 
-                    case 'retry-infinite': 
-                        // console.log("infinite-retry - timeout");
+                    case 'retry-infinite':
 
                         node.transmitMessage(itemQueue);
                         return;
 
                         break;
 
-                    case 'move-error': 
-                        // console.log("move-error - timeout");
+                    case 'move-error':
                         break;
                 }
             }
 
-            if(origin == "error"){
-                
-                switch(node.typeError){
-                    
-                case 'retry-times': 
-                    // console.log("retry-times - timeout");
-                    itemQueue.resend++;
-                    
-                    if(itemQueue.resend <= node.retryError){
+            if (origin == "error") {
+
+                switch (node.typeError) {
+
+                    case 'retry-times':
+                        itemQueue.resend++;
+
+                        if (itemQueue.resend <= node.retryError) {
+                            node.transmitMessage(itemQueue);
+                            return;
+                        }
+
+                        break;
+
+                    case 'retry-infinite':
+
                         node.transmitMessage(itemQueue);
                         return;
-                    }
 
-                    break;
+                        break;
 
-                case 'retry-infinite': 
-                    // console.log("infinite-retry - timeout");
-
-                    node.transmitMessage(itemQueue);
-                    return;
-
-                    break;
-
-                case 'move-error': 
-                    // console.log("move-error - timeout");
-                    break;
+                    case 'move-error':
+                        break;
 
                 }
             }
 
-            if(itemQueue.nodeOut){
+            if (itemQueue.nodeOut) {
                 itemQueue.nodeOut.setOutFree();
 
                 if (node.stopProcess) {
                     itemQueue.nodeOut.setOutStopProcess();
                 }
-            }          
+            }
 
             node.messageProcess.delete(itemQueue.keyMessage);
             node.virtualQueue.delete(itemQueue.keyMessage);
@@ -420,13 +401,13 @@ module.exports = function (RED) {
 
             clearTimeout(itemQueue.timer);
 
-            if(itemQueue.nodeOut){
+            if (itemQueue.nodeOut) {
                 itemQueue.nodeOut.setOutFree();
 
                 if (node.stopProcess) {
                     itemQueue.nodeOut.setOutStopProcess();
                 }
-            }   
+            }
 
             node.messageProcess.delete(itemQueue.keyMessage);
             node.virtualQueue.delete(itemQueue.keyMessage);
@@ -777,8 +758,9 @@ module.exports = function (RED) {
             if (msg.error) {
 
                 let obj = {
-                    item : msg.uuid,
-                    origin: "error"};
+                    item: msg.uuid,
+                    origin: "error"
+                };
 
                 node.config.onError(obj);
                 return;

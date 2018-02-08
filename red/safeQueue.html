@@ -582,7 +582,7 @@ limitations under the License.
 
     <div class="form-row">
         <label for="node-config-input-typeTimeout">
-            <i class="fa fa-database"></i>
+            <i class="fa fa-bars"></i>
             <span data-i18n="safe-queue.config.label.on-timeout"></span>
         </label>
         <select type="text" id="node-config-input-typeTimeout">
@@ -590,7 +590,7 @@ limitations under the License.
             <option value="retry-times" data-i18n="safe-queue.errors-options.retry-times"></option>
             <option value="retry-infinite" data-i18n="safe-queue.errors-options.retry-infinite"></option>
         </select>
-    </div>    
+    </div>
 
     <div class="form-row">
         <label for="node-config-input-timeoutAck">
@@ -602,7 +602,7 @@ limitations under the License.
 
     <div class="form-row" id="div-retry-timeout">
         <label for="node-config-input-retryTimeout">
-            <i class="fa fa-clock-o"></i>
+            <i class="fa fa-repeat"></i>
             <span data-i18n="safe-queue.config.label.retry-times"></span>
         </label>
         <input type="text" id="node-config-input-retryTimeout">
@@ -610,7 +610,7 @@ limitations under the License.
 
     <div class="form-row">
         <label for="node-config-input-typeError">
-            <i class="fa fa-database"></i>
+            <i class="fa fa-bars"></i>
             <span data-i18n="safe-queue.config.label.on-error"></span>
         </label>
         <select type="text" id="node-config-input-typeError">
@@ -618,11 +618,11 @@ limitations under the License.
             <option value="retry-times" data-i18n="safe-queue.errors-options.retry-times"></option>
             <option value="retry-infinite" data-i18n="safe-queue.errors-options.retry-infinite"></option>
         </select>
-    </div> 
+    </div>
 
     <div class="form-row" id="div-retry-error">
         <label for="node-config-input-retryError">
-            <i class="fa fa-clock-o"></i>
+            <i class="fa fa-repeat"></i>
             <span data-i18n="safe-queue.config.label.retry-times"></span>
         </label>
         <input type="text" id="node-config-input-retryError">
@@ -754,27 +754,27 @@ limitations under the License.
                 min: 0
             });
 
-            input_typeTimeout.change(function (){
+            input_typeTimeout.change(function () {
 
                 let value = input_typeTimeout.val();
                 // console.log("VALUE: ", value);
 
-                if(value == 'retry-times'){
+                if (value == 'retry-times') {
                     div_retry_timeout.show();
-                }else{
+                } else {
                     div_retry_timeout.hide();
                 }
 
             });
 
-            input_typeError.change(function (){
+            input_typeError.change(function () {
 
                 let value = input_typeError.val();
                 // console.log("VALUE: ", value);
 
-                if(value == 'retry-times'){
+                if (value == 'retry-times') {
                     div_retry_error.show();
-                }else{
+                } else {
                     div_retry_error.hide();
                 }
             });
