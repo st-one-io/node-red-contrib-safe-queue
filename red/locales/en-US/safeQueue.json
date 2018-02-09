@@ -31,7 +31,8 @@
         "start-job": "Start job at start?",
         "on-timeout": "onTimeout",
         "on-error": "onError",
-        "retry-times": "Times retry"
+        "retry-times": "Times retry",
+        "max-memory": "Max queue in memory"
       },
       "define": {
         "name": "queue config"
