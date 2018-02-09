@@ -84,6 +84,12 @@ module.exports = function (RED) {
 
         this.retryError = config.retryError;
 
+        this.maxInMemory = config.maxInMemory;
+
+        if (node.maxInMemory == 0) {
+            node.maxInMemory = 10000;
+        }
+
         let infoPath = {
             'path': config.path
         };
@@ -163,12 +169,16 @@ module.exports = function (RED) {
                         itemQueue.timer = null;
                         itemQueue.resend = 0; //Atualização para reenvio automatico
 
-                        let itemMessage = {};
-                        itemMessage.keyMessage = data.message.uuid;
-                        itemMessage.message = data.message;
-
                         node.virtualQueue.set(itemQueue.keyMessage, itemQueue);
-                        node.messageProcess.set(itemMessage.keyMessage, itemMessage);
+
+                        let sizeMessageProcess = node.messageProcess.size;
+
+                        if (sizeMessageProcess < node.maxInMemory) {
+                            let itemMessage = {};
+                            itemMessage.keyMessage = newID;
+                            itemMessage.message = message;
+                            node.messageProcess.set(itemMessage.keyMessage, itemMessage);
+                        }
 
                         node.processQueue();
                     });
@@ -192,13 +202,17 @@ module.exports = function (RED) {
             itemQueue.nodeOut = null;
             itemQueue.timer = null;
             itemQueue.resend = 0; //Atualização para reenvio automatico
+            node.virtualQueue.set(itemQueue.keyMessage, itemQueue);
+
+            let sizeMessageProcess = node.messageProcess.size;
 
             let itemMessage = {};
             itemMessage.keyMessage = newID;
             itemMessage.message = message;
 
-            node.virtualQueue.set(itemQueue.keyMessage, itemQueue);
-            node.messageProcess.set(itemMessage.keyMessage, itemMessage);
+            if (sizeMessageProcess < node.maxInMemory) {              
+                node.messageProcess.set(itemMessage.keyMessage, itemMessage);
+            }
 
             node.storage.saveMessage(itemMessage, (err) => {
                 callback(err);

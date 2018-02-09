@@ -636,6 +636,14 @@ limitations under the License.
         </label>
     </div>
 
+    <div class="form-row">
+        <label for="node-config-input-maxInMemory">
+            <i class="fa fa-archive"></i>
+            <span data-i18n="safe-queue.config.label.max-memory"></span>
+        </label>
+        <input type="text" id="node-config-input-maxInMemory">
+    </div>
+
 </script>
 
 <script type="text/x-red" data-help-name="queue config">
@@ -705,6 +713,9 @@ limitations under the License.
             },
             retryError: {
                 value: 0
+            },
+            maxInMemory: {
+                value: 0
             }
 
         },
@@ -723,6 +734,8 @@ limitations under the License.
 
             const input_retry_error = $('#node-config-input-retryError');
             const div_retry_error = $('#div-retry-error');
+
+            const input_max_in_memory = $('#node-config-input-maxInMemory');
 
             var storageMode = $('#node-config-input-storage');
             var fsRow = $('#node-config-queue-config-mode-fs');
@@ -751,6 +764,10 @@ limitations under the License.
             });
 
             input_retry_error.spinner({
+                min: 0
+            });
+
+            input_max_in_memory.spinner({
                 min: 0
             });
 
