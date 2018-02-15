@@ -209,7 +209,7 @@ module.exports = function (RED) {
             let itemMessage = {};
             itemMessage.keyMessage = newID;
             itemMessage.message = message;
-
+            
             if (sizeMessageProcess < node.maxInMemory) {              
                 node.messageProcess.set(itemMessage.keyMessage, itemMessage);
             }
@@ -423,8 +423,8 @@ module.exports = function (RED) {
                 }
             }
 
-            node.messageProcess.delete(itemQueue.keyMessage);
-            node.virtualQueue.delete(itemQueue.keyMessage);
+            node.messageProcess.delete(keyMessage);
+            node.virtualQueue.delete(keyMessage);
 
             node.storage.doneMessage(itemQueue.keyMessage, (err) => {
                 if (err) {

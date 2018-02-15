@@ -628,13 +628,7 @@ limitations under the License.
         <input type="text" id="node-config-input-retryError">
     </div>
 
-    <div class="form-row">
-        <label>&nbsp;</label>
-        <input type="checkbox" id="node-config-input-startJob" style="display: inline-block; width: auto; vertical-align: top;">
-        <label for="node-config-input-startJob" style="width:70%;">
-            <span data-i18n="safe-queue.config.label.start-job"></span>
-        </label>
-    </div>
+
 
     <div class="form-row">
         <label for="node-config-input-maxInMemory">
@@ -642,6 +636,14 @@ limitations under the License.
             <span data-i18n="safe-queue.config.label.max-memory"></span>
         </label>
         <input type="text" id="node-config-input-maxInMemory">
+    </div>
+
+    <div class="form-row">
+        <label>&nbsp;</label>
+        <input type="checkbox" id="node-config-input-startJob" style="display: inline-block; width: auto; vertical-align: top;">
+        <label for="node-config-input-startJob" style="width:70%;">
+            <span data-i18n="safe-queue.config.label.start-job"></span>
+        </label>
     </div>
 
 </script>
@@ -665,10 +667,38 @@ limitations under the License.
         </dt>
         <dd>defines the path used to persist the queue’s data.</dd>
 
+        <dt>onTimeout
+            <span class="property-type">Operation on timeout</span>
+        </dt>
+        <dd>Select operation on timeout: 
+            <br><code>Move to errors: </code> on timeout, move messages for errors.
+            <br><code>Retry x times: </code> on timeout, retry send message for x times, define times on <b>Times retry</b>.
+            <br><code>Infinite retrys: </code> on timeout, retry sending a message until succeed.
+        </dd>
+
         <dt>Timeout ACK
             <span class="property-type">number</span>
         </dt>
         <dd>defines how long to wait before considering a message to have failed. If set 0, the timeout is disabled.</dd>
+    
+        <dt>Times retry
+            <span class="property-type">number</span>
+        </dt>
+        <dd>define the number of try.</dd>
+
+        <dt>onError
+            <span class="property-type">Operation on error</span>
+        </dt>
+        <dd>Select operation on error: 
+            <br><code>Move to errors: </code> on error, move messages for errors.
+            <br><code>Retry x times: </code> on error, retry send message for x times, define times on <b>Times retry</b>.
+            <br><code>Infinite retrys: </code> on error, retry sending a message until succeed.
+        </dd>
+
+        <dt>Times retry
+            <span class="property-type">number</span>
+        </dt>
+        <dd>define the number of try.</dd>
 
         <dt>Start job at start
             <span class="property-type">boolean</span>
