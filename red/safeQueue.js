@@ -86,10 +86,6 @@ module.exports = function (RED) {
 
         this.maxInMemory = config.maxInMemory;
 
-        if (node.maxInMemory == 0) {
-            node.maxInMemory = 10000;
-        }
-
         let infoPath = {
             'path': config.path
         };
@@ -176,8 +172,8 @@ module.exports = function (RED) {
                         node.virtualQueue.set(itemQueue.keyMessage, itemQueue);
 
                         let sizeMessageProcess = node.messageProcess.size;
-
-                        if (sizeMessageProcess < node.maxInMemory) {
+                        
+                        if (sizeMessageProcess < node.maxInMemory || node.maxInMemory == 0) {
                             let itemMessage = {};
                             itemMessage.keyMessage = data.keyMessage;
                             itemMessage.message = data.message;
@@ -214,7 +210,7 @@ module.exports = function (RED) {
             itemMessage.keyMessage = newID;
             itemMessage.message = message;
 
-            if (sizeMessageProcess < node.maxInMemory) {
+            if (sizeMessageProcess < node.maxInMemory || node.maxInMemory == 0) {
                 node.messageProcess.set(itemMessage.keyMessage, itemMessage);
             }
 
