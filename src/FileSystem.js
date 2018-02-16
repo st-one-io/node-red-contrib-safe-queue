@@ -44,38 +44,31 @@ function getFolderSize(path, chkSubdir, callback) {
 
     var dirsCount, count = 0;
 
-    fs.readdir(path, 'utf8', (err, arr) => {
-
+    mkdirp(path, (err) => {
         if (err) {
             callback(err);
             return;
         }
 
-        if (chkSubdir) {
-            dirsCount = arr.length;
+        fs.readdir(path, 'utf8', (err, arr) => {
 
-            if (dirsCount === 0) {
-                callback(null, 0);
+            if (err) {
+                callback(err);
                 return;
             }
 
-            arr.forEach(dir => {
-                var newdir = pathLib.join(path, dir);
+            if (chkSubdir) {
+                dirsCount = arr.length;
 
-                fs.stat(newdir, (err, stat) => {
-                    if (dirsCount < 0) return;
+                if (dirsCount === 0) {
+                    callback(null, 0);
+                    return;
+                }
 
-                    if (err) {
-                        callback(err);
-                        dirsCount = -1;
-                        return;
-                    }
+                arr.forEach(dir => {
+                    var newdir = pathLib.join(path, dir);
 
-                    dirsCount--;
-
-                    if (!stat.isDirectory()) return;
-
-                    getFolderSize(newdir, false, (err, cnt) => {
+                    fs.stat(newdir, (err, stat) => {
                         if (dirsCount < 0) return;
 
                         if (err) {
@@ -84,17 +77,31 @@ function getFolderSize(path, chkSubdir, callback) {
                             return;
                         }
 
-                        count += cnt;
+                        dirsCount--;
 
-                        if (dirsCount === 0) {
-                            callback(null, count);
-                        }
-                    })
+                        if (!stat.isDirectory()) return;
+
+                        getFolderSize(newdir, false, (err, cnt) => {
+                            if (dirsCount < 0) return;
+
+                            if (err) {
+                                callback(err);
+                                dirsCount = -1;
+                                return;
+                            }
+
+                            count += cnt;
+
+                            if (dirsCount === 0) {
+                                callback(null, count);
+                            }
+                        })
+                    });
                 });
-            });
-        } else {
-            callback(null, countFiles(arr))
-        }
+            } else {
+                callback(null, countFiles(arr))
+            }
+        });
     });
 }
 
@@ -476,7 +483,7 @@ class FileSystem extends EventEmitter {
             callback(null, listFiles);
         });
     }
-    
+
     resendErrors(days, callback) {
 
         days = days || 0;
