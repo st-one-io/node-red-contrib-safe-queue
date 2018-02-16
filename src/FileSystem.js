@@ -13,6 +13,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
+/* jshint node: true, esversion: 6 */
+
 'use strict';
 
 const fs = require('fs');
@@ -95,11 +97,11 @@ function getFolderSize(path, chkSubdir, callback) {
                             if (dirsCount === 0) {
                                 callback(null, count);
                             }
-                        })
+                        });
                     });
                 });
             } else {
-                callback(null, countFiles(arr))
+                callback(null, countFiles(arr));
             }
         });
     });
@@ -192,7 +194,7 @@ function subtractDate(days, date) {
 
     var newDate = new Date(date);
 
-    var days = days * 24 * 60 * 60 * 1000;
+    days = days * 24 * 60 * 60 * 1000;
 
     newDate = new Date(newDate.getTime() - days);
 
@@ -470,8 +472,10 @@ class FileSystem extends EventEmitter {
                 const uriFile = pathLib.join(this.uriQueue, file);
                 let extName = pathLib.extname(uriFile);
 
+                var baseName = pathLib.basename(uriFile, extName);
+
                 if (extName === extension) {
-                    var baseName = pathLib.basename(uriFile, extension);
+                    baseName = pathLib.basename(uriFile, extension);
                     listFiles.push(baseName);
 
                 } else {

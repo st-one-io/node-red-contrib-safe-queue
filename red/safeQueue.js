@@ -13,6 +13,8 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 */
+/* jshint node: true, esversion: 6 */
+
 
 const FileSystem = require('../src/FileSystem.js');
 
@@ -24,7 +26,7 @@ function generateUUID() {
         return (c == 'x' ? r : (r & 0x3 | 0x8)).toString(16);
     });
     return uuid;
-};
+}
 
 module.exports = function (RED) {
     "use strict";
@@ -184,7 +186,7 @@ module.exports = function (RED) {
                     });
                 });
             });
-        }
+        };
 
         //---> Functions <---
         node.receiveMessage = function receiveMessage(message, callback) {
@@ -217,7 +219,7 @@ module.exports = function (RED) {
             node.storage.saveMessage(itemMessage, (err) => {
                 callback(err);
             });
-        }
+        };
 
         node.processQueue = function processQueue() {
 
@@ -243,7 +245,7 @@ module.exports = function (RED) {
             itemQueue.nodeOut = nodeOut;
 
             node.transmitMessage(itemQueue);
-        }
+        };
 
         node.transmitMessage = function transmitMessage(itemQueue) {
 
@@ -278,7 +280,7 @@ module.exports = function (RED) {
                     itemQueue.nodeOut.sendMessage(data.message);
                 });
             }
-        }
+        };
 
         node.getNodeOut = function getNodeOut() {
 
@@ -297,7 +299,7 @@ module.exports = function (RED) {
                     return out;
                 }
             });
-        }
+        };
 
         node.getMessageProcess = function getMessageProcess() {
             for (var [key, value] of node.virtualQueue.entries()) {
@@ -306,7 +308,7 @@ module.exports = function (RED) {
                 }
             }
             return null;
-        }
+        };
 
         node.onError = function onError(obj) {
 
@@ -346,8 +348,6 @@ module.exports = function (RED) {
                         node.transmitMessage(itemQueue);
                         return;
 
-                        break;
-
                     case 'move-error':
                         break;
                 }
@@ -371,8 +371,6 @@ module.exports = function (RED) {
 
                         node.transmitMessage(itemQueue);
                         return;
-
-                        break;
 
                     case 'move-error':
                         break;
@@ -399,7 +397,7 @@ module.exports = function (RED) {
                 node.processQueue();
 
             });
-        }
+        };
 
         node.onSuccess = function onSuccess(keyMessage) {
 
@@ -432,11 +430,11 @@ module.exports = function (RED) {
                 }
                 node.processQueue();
             });
-        }
+        };
 
         node.registerOut = function registerOut(nodeOut) {
             node.listNodeOut.push(nodeOut);
-        }
+        };
 
         node.allOutNodeStopped = function allOutNodeStopped() {
 
@@ -449,33 +447,33 @@ module.exports = function (RED) {
             });
 
             return inStop;
-        }
+        };
         //---> Functions <---
 
         //--> Function Storage <--
         node.deleteDone = function deleteDone(days, callback) {
             node.storage.deleteDone(days, callback);
-        }
+        };
 
         node.deleteError = function deleteError(days, callback) {
             node.storage.deleteError(days, callback);
-        }
+        };
 
         node.resendErrors = function resendErrors(days, callback) {
             node.storage.resendErrors(days, callback);
-        }
+        };
 
         node.getQueueSize = function getQueueSize(callback) {
             node.storage.getQueueSize(callback);
-        }
+        };
 
         node.getDoneSize = function getDoneSize(callback) {
             node.storage.getDoneSize(callback);
-        }
+        };
 
         node.getErrorSize = function getErrorSize(callback) {
             node.storage.getErrorSize(callback);
-        }
+        };
         //--> Function Storage <--
     }
 
@@ -555,7 +553,7 @@ module.exports = function (RED) {
                 shape: "dot",
                 text: "stop process"
             });
-        }
+        };
 
         node.setOutInProcess = function setOutInProcess() {
             node.outInProcess = true;
@@ -564,7 +562,7 @@ module.exports = function (RED) {
                 shape: "dot",
                 text: "process"
             });
-        }
+        };
 
         node.setOutFree = function setOutFree() {
             node.outInStop = false;
@@ -574,11 +572,11 @@ module.exports = function (RED) {
                 shape: "dot",
                 text: "free"
             });
-        }
+        };
 
         node.sendMessage = function sendMessage(message) {
             node.send(message);
-        }
+        };
     }
 
     RED.nodes.registerType("queue out", SafeQueueOut);
