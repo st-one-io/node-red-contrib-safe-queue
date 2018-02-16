@@ -131,11 +131,15 @@ module.exports = function (RED) {
                 return;
             }
 
+            node.stopProcess = true;
+
             node.listNodeOut.forEach(out => {
                 if (!out.outInProcess) {
                     out.setOutStopProcess();
                 }
             });
+
+            node.log(RED._("safe-queue.message-log.stop-output"));
 
         });
 
@@ -175,8 +179,8 @@ module.exports = function (RED) {
 
                         if (sizeMessageProcess < node.maxInMemory) {
                             let itemMessage = {};
-                            itemMessage.keyMessage = newID;
-                            itemMessage.message = message;
+                            itemMessage.keyMessage = data.keyMessage;
+                            itemMessage.message = data.message;
                             node.messageProcess.set(itemMessage.keyMessage, itemMessage);
                         }
 
@@ -209,8 +213,8 @@ module.exports = function (RED) {
             let itemMessage = {};
             itemMessage.keyMessage = newID;
             itemMessage.message = message;
-            
-            if (sizeMessageProcess < node.maxInMemory) {              
+
+            if (sizeMessageProcess < node.maxInMemory) {
                 node.messageProcess.set(itemMessage.keyMessage, itemMessage);
             }
 
@@ -719,9 +723,9 @@ module.exports = function (RED) {
                         out.setOutFree();
                     });
 
-                    node.config.startMessages();
-
                     node.log(RED._("safe-queue.message-log.start-process"));
+
+                    node.config.startMessages();
 
                     node.send(msg);
 
