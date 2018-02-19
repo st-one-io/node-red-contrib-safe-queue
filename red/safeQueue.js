@@ -433,7 +433,23 @@ module.exports = function (RED) {
         };
 
         node.registerOut = function registerOut(nodeOut) {
-            node.listNodeOut.push(nodeOut);
+
+            let id = nodeOut.id;
+            let achou  = false;
+
+            node.listNodeOut.forEach((out) => {
+                if(id == out.id){
+                    achou = true;
+                }
+            });
+
+
+            if(!achou){
+                node.listNodeOut.push(nodeOut);
+            }else{
+                node.warn(RED._("safe-queue.message-errors.register-existent"));
+            }
+            
         };
 
         node.allOutNodeStopped = function allOutNodeStopped() {

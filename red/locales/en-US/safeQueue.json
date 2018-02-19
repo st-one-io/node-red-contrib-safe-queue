@@ -73,7 +73,8 @@
       "error-node-config": "no configuration node setted",
       "fail-message-process" : "failed to process message",
       "no-operation": "no chosen operation",
-      "fail-read-message": "could not read message"
+      "fail-read-message": "could not read message",
+      "register-existent": "register of output existent"
     },
     "message-log": {
       "start-process": "Start process",
