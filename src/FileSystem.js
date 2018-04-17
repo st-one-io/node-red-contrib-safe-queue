@@ -173,19 +173,22 @@ function deleteFilesDir(pathDir, callback) {
             return;
         }
 
+        function deleteFileCallback(e) {
+            if(e) {
+                doCallback(e);
+                return;
+            }
+
+            filesCount--;
+            if (filesCount === 0) {
+                doCallback(null);
+            }
+        }
+
         for (var file of files) {
 
             let urlFile = pathLib.join(pathDir, file);
-            deleteFile(urlFile, (err) => {
-                if (err) {
-                    doCallback(err);
-                    return;
-                }
-                filesCount--;
-                if (filesCount === 0) {
-                    doCallback(null);
-                }
-            });
+            deleteFile(urlFile, deleteFileCallback);
         }
     });
 }
@@ -205,7 +208,7 @@ function sumDate(days, date) {
 
     var newDate = new Date(date);
 
-    var days = days * 24 * 60 * 60 * 1000;
+    days = days * 24 * 60 * 60 * 1000;
 
     newDate = new Date(newDate.getTime() + days);
 
@@ -343,7 +346,9 @@ class FileSystem extends EventEmitter {
     }
 
     close() {
-        this.watcher && this.watcher.close();
+        if(this.watcher) {
+            this.watcher.close();
+        }
         this.watcher = null;
     }
 

@@ -38,8 +38,9 @@ module.exports = function (RED) {
 
         RED.nodes.createNode(this, config);
 
-        var equalPath = false;
+        var samePath = false;
 
+        //check if we have multiple 'queue config' nodes with the same path configured
         RED.nodes.eachNode((nodes) => {
 
             if (nodes.type == 'queue config') {
@@ -49,42 +50,33 @@ module.exports = function (RED) {
                 }
 
                 if (config.path === nodes.path) {
+                    //TODO: internationalize
                     node.error("Path in use. Path: " + config.path);
-                    equalPath = true;
+                    samePath = true;
                 }
             }
         });
 
-        if (equalPath) {
+        if (samePath) {
+            //TODO: remove, the error was already logged above
             node.error("Path in use. Path: " + config.path);
             return;
         }
-
-        this.name = config.name;
-
-        this.listNodeOut = [];
-
+        
         this.virtualQueue = new Map();
-        this.messageProcess = new Map();
-
-        this.stopProcess = false;
-
-        this.onClose = false;
-
+        this.messageCache = new Map();
+        this.listNodeOut = [];
+        this.running = false;
+        this.closing = false;
+        
+        this.name = config.name;
         this.timeOut = config.timeoutAck;
-
         this.storageMode = config.storage;
-
         this.autoStartJob = config.startJob;
-
         this.typeTimeout = config.typeTimeout;
-
         this.typeError = config.typeError;
-
         this.retryTimeout = config.retryTimeout;
-
         this.retryError = config.retryError;
-
         this.maxInMemory = config.maxInMemory;
 
         let infoPath = {
@@ -94,20 +86,21 @@ module.exports = function (RED) {
         if (node.storageMode == 'fs') {
             node.storage = new FileSystem(infoPath);
         } else {
+            //TODO: internationalize
             node.error("Error in node configuration.");
             return;
         }
 
         node.on('close', (done) => {
 
-            node.onClose = true;
+            node.closing = true;
 
             node.virtualQueue.forEach((value, key) => {
                 clearTimeout(value.timer);
             });
 
             node.virtualQueue.clear();
-            node.messageProcess.clear();
+            node.messageCache.clear();
 
             node.storage.close();
 
@@ -128,7 +121,7 @@ module.exports = function (RED) {
                 return;
             }
 
-            node.stopProcess = true;
+            node.running = false;
 
             node.listNodeOut.forEach(out => {
                 if (!out.outInProcess) {
@@ -146,8 +139,8 @@ module.exports = function (RED) {
                 node.virtualQueue.clear();
             }
 
-            if (node.messageProcess.size > 0) {
-                node.messageProcess.clear();
+            if (node.messageCache.size > 0) {
+                node.messageCache.clear();
             }
 
             node.storage.getMessageList((err, list) => {
@@ -169,14 +162,12 @@ module.exports = function (RED) {
                         itemQueue.resend = 0; //Atualização para reenvio automatico
 
                         node.virtualQueue.set(itemQueue.keyMessage, itemQueue);
-
-                        let sizeMessageProcess = node.messageProcess.size;
                         
-                        if (sizeMessageProcess < node.maxInMemory || node.maxInMemory == 0) {
+                        if (node.messageCache.size < node.maxInMemory || node.maxInMemory == 0) {
                             let itemMessage = {};
                             itemMessage.keyMessage = data.keyMessage;
                             itemMessage.message = data.message;
-                            node.messageProcess.set(itemMessage.keyMessage, itemMessage);
+                            node.messageCache.set(itemMessage.keyMessage, itemMessage);
                         }
 
                         node.processQueue();
@@ -203,14 +194,12 @@ module.exports = function (RED) {
             itemQueue.resend = 0; //Atualização para reenvio automatico
             node.virtualQueue.set(itemQueue.keyMessage, itemQueue);
 
-            let sizeMessageProcess = node.messageProcess.size;
-
             let itemMessage = {};
             itemMessage.keyMessage = newID;
             itemMessage.message = message;
 
-            if (sizeMessageProcess < node.maxInMemory || node.maxInMemory == 0) {
-                node.messageProcess.set(itemMessage.keyMessage, itemMessage);
+            if (node.messageCache.size < node.maxInMemory || node.maxInMemory == 0) {
+                node.messageCache.set(itemMessage.keyMessage, itemMessage);
             }
 
             node.storage.saveMessage(itemMessage, (err) => {
@@ -220,7 +209,7 @@ module.exports = function (RED) {
 
         node.processQueue = function processQueue() {
 
-            if (node.onClose) {
+            if (node.closing) {
                 return;
             }
 
@@ -258,8 +247,8 @@ module.exports = function (RED) {
 
             itemQueue.nodeOut.setOutInProcess();
 
-            if (node.messageProcess.has(itemQueue.keyMessage)) {
-                let message = node.messageProcess.get(itemQueue.keyMessage);
+            if (node.messageCache.has(itemQueue.keyMessage)) {
+                let message = node.messageCache.get(itemQueue.keyMessage);
                 itemQueue.nodeOut.sendMessage(message.message);
             } else {
                 node.storage.getMessage(itemQueue.keyMessage, (err, data) => {
@@ -272,7 +261,7 @@ module.exports = function (RED) {
                     itemMessage.keyMessage = data.uuid;
                     itemMessage.message = data.message;
 
-                    node.messageProcess.set(itemMessage.keyMessage, itemMessage);
+                    node.messageCache.set(itemMessage.keyMessage, itemMessage);
 
                     itemQueue.nodeOut.sendMessage(data.message);
                 });
@@ -282,7 +271,7 @@ module.exports = function (RED) {
         node.getNodeOut = function getNodeOut() {
 
             //Fuction set stop outputs and return null for stop processQueue()
-            if (node.stopProcess) {
+            if (!node.running) {
                 node.listNodeOut.forEach(out => {
                     if (!out.outInProcess) {
                         out.setOutStopProcess();
@@ -312,7 +301,7 @@ module.exports = function (RED) {
             let keyMessage = obj.item;
             let origin = obj.origin;
 
-            if (node.onClose) {
+            if (node.closing) {
                 return;
             }
 
@@ -378,12 +367,12 @@ module.exports = function (RED) {
             if (itemQueue.nodeOut) {
                 itemQueue.nodeOut.setOutFree();
 
-                if (node.stopProcess) {
+                if (!node.running) {
                     itemQueue.nodeOut.setOutStopProcess();
                 }
             }
 
-            node.messageProcess.delete(itemQueue.keyMessage);
+            node.messageCache.delete(itemQueue.keyMessage);
             node.virtualQueue.delete(itemQueue.keyMessage);
 
             node.storage.errorMessage(itemQueue.keyMessage, (err) => {
@@ -398,7 +387,7 @@ module.exports = function (RED) {
 
         node.onSuccess = function onSuccess(keyMessage) {
 
-            if (node.onClose) {
+            if (node.closing) {
                 return;
             }
 
@@ -413,12 +402,12 @@ module.exports = function (RED) {
             if (itemQueue.nodeOut) {
                 itemQueue.nodeOut.setOutFree();
 
-                if (node.stopProcess) {
+                if (!node.running) {
                     itemQueue.nodeOut.setOutStopProcess();
                 }
             }
 
-            node.messageProcess.delete(keyMessage);
+            node.messageCache.delete(keyMessage);
             node.virtualQueue.delete(keyMessage);
 
             node.storage.doneMessage(itemQueue.keyMessage, (err) => {
@@ -506,7 +495,7 @@ module.exports = function (RED) {
             node.status({
                 fill: "blue",
                 shape: "dot",
-                text: "new data"
+                text: "new data" //TODO: internationalize
             });
 
             node.config.receiveMessage(msg, (err) => {
@@ -521,7 +510,7 @@ module.exports = function (RED) {
                     node.status({
                         fill: "red",
                         shape: "dot",
-                        text: "error"
+                        text: "error" //TODO: internationalize
                     });
 
                     return;
@@ -532,7 +521,7 @@ module.exports = function (RED) {
                 node.status({
                     fill: "green",
                     shape: "dot",
-                    text: "done"
+                    text: "done" //TODO: internationalize
                 });
             });
         });
@@ -564,7 +553,7 @@ module.exports = function (RED) {
             node.status({
                 fill: "yellow",
                 shape: "dot",
-                text: "stop process"
+                text: "stop process" //TODO: internationalize
             });
         };
 
@@ -573,7 +562,7 @@ module.exports = function (RED) {
             node.status({
                 fill: "blue",
                 shape: "dot",
-                text: "process"
+                text: "process" //TODO: internationalize
             });
         };
 
@@ -583,7 +572,7 @@ module.exports = function (RED) {
             node.status({
                 fill: "green",
                 shape: "dot",
-                text: "free"
+                text: "free" //TODO: internationalize
             });
         };
 
@@ -724,7 +713,7 @@ module.exports = function (RED) {
                         return;
                     }
 
-                    node.config.stopProcess = false;
+                    node.config.running = true;
 
                     node.config.listNodeOut.forEach(out => {
                         out.setOutFree();
@@ -740,7 +729,7 @@ module.exports = function (RED) {
 
                 case 'stop-process':
 
-                    node.config.stopProcess = true;
+                    node.config.running = false;
 
                     node.config.listNodeOut.forEach(out => {
                         if (!out.outInProcess) {
