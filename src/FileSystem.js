@@ -563,15 +563,19 @@ class FileSystem extends EventEmitter {
 
                         var countFiles = files.length;
 
+                        totalFiles += countFiles;
+                        countDirs--;
+
                         if (countFiles === 0) {
                             fs.rmdir(urlDir, (err) => {
-                                doCallback(err);
+                                if(err) {
+                                    doCallback(err);
+                                } else if(countDirs === 0 && totalFiles === 0) {
+                                    doCallback(null);
+                                }
                             });
                             return;
                         }
-
-                        totalFiles += countFiles;
-                        countDirs--;
 
                         files.forEach(file => {
                             let oldFile = pathLib.join(urlDir, file);
