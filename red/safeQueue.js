@@ -68,7 +68,6 @@ module.exports = function (RED) {
         this.messageProcess = new Map();
 
         this.stopProcess = false;
-        this.initProcess = false;
 
         this.onClose = false;
 
@@ -142,8 +141,6 @@ module.exports = function (RED) {
         });
 
         node.startMessages = function startMessages() {
-
-            node.initProcess = true;
 
             if (node.virtualQueue.size > 0) {
                 node.virtualQueue.clear();
