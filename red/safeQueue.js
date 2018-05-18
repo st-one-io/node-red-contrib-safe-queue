@@ -50,8 +50,7 @@ module.exports = function (RED) {
                 }
 
                 if (config.path === nodes.path) {
-                    //TODO: internationalize
-                    node.error("Path in use. Path: " + config.path);
+                    node.error(RED._("safe-queue.messages.path-in-use") + config.path);
                     samePath = true;
                 }
             }
@@ -59,7 +58,7 @@ module.exports = function (RED) {
 
         if (samePath) {
             //TODO: remove, the error was already logged above
-            node.error("Path in use. Path: " + config.path);
+            // node.error("Path in use. Path: " + config.path);
             return;
         }
         
@@ -89,8 +88,7 @@ module.exports = function (RED) {
         if (node.storageMode == 'fs') {
             node.storage = new FileSystem(infoPath);
         } else {
-            //TODO: internationalize
-            node.error("Error in node configuration.");
+            node.error(RED._("safe-queue.messages.error-not-storage"));
             return;
         }
 
@@ -198,7 +196,7 @@ module.exports = function (RED) {
 
             node.storage.saveMessage(itemMessage, (err) => {
                 callback(err);
-                processQueue();
+                node.processQueue();
             });
         };
 
@@ -296,7 +294,7 @@ module.exports = function (RED) {
 
             node.warn(`${RED._("safe-queue.message-errors.fail-message-process")}: ${itemQueue.keyMessage} - ${origin}`);
 
-            clearTimeout(itemQueue.timer)
+            clearTimeout(itemQueue.timer);
 
             if (origin == "timeout") {
                 switch (node.typeTimeout) {
@@ -465,7 +463,7 @@ module.exports = function (RED) {
             node.status({
                 fill: "blue",
                 shape: "dot",
-                text: "new data" //TODO: internationalize
+                text: RED._("safe-queue.status.new-data")
             });
 
             node.config.receiveMessage(msg, (err) => {
@@ -480,7 +478,7 @@ module.exports = function (RED) {
                     node.status({
                         fill: "red",
                         shape: "dot",
-                        text: "error" //TODO: internationalize
+                        text: RED._("safe-queue.status.error")
                     });
 
                     return;
@@ -491,7 +489,7 @@ module.exports = function (RED) {
                 node.status({
                     fill: "green",
                     shape: "dot",
-                    text: "done" //TODO: internationalize
+                    text: RED._("safe-queue.status.done")
                 });
             });
         });
@@ -522,13 +520,17 @@ module.exports = function (RED) {
             node.status({
                 fill: "blue",
                 shape: "dot",
-                text: "process" //TODO: internationalize
+                text: RED._("safe-queue.status.process")
             });
         };
 
         node.setOutFree = function setOutFree() {
             node.outInProcess = false;
-            node.status({});
+            node.status({
+                fill: "green",
+                shape: "dot",
+                text: RED._("safe-queue.status.done")
+            });
         };
 
         node.sendMessage = function sendMessage(message) {

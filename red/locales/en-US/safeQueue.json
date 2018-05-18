@@ -85,6 +85,16 @@
       "move-error": "Move to errors",
       "retry-times": "Retry x times",
       "retry-infinite": "Infinite retrys"
+    },
+    "status":{
+      "process": "process",
+      "done": "done",
+      "error": "error",
+      "new-data": "new data"
+    },
+    "messages":{
+      "path-in-use": "Path in use. Path: ",
+      "error-not-storage": "Error in node configuration - storage."
     }
 
   }
