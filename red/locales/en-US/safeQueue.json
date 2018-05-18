@@ -94,7 +94,9 @@
     },
     "messages":{
       "path-in-use": "Path in use. Path: ",
-      "error-not-storage": "Error in node configuration - storage."
+      "error-not-storage": "Error in node configuration - storage.",
+      "error-init-storage": "Error init storage",
+      "error-init-messages": "Error load messages"
     }
 
   }

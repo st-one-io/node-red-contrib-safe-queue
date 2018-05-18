@@ -142,12 +142,14 @@ module.exports = function (RED) {
 
         node.storage.init((err) => {
             if (err) {
-                return; //TODO handle error!!
+                node.error(`${RED._("safe-queue.messages.error-init-storage")}: ${err}`);
+                return;
             }
 
             node.updateMessageList(err => {
                 if(err){
-                    return; //TODO handle error
+                    node.error(`${RED._("safe-queue.messages.error-init-messages")}: ${err}`);
+                    return;
                 }
 
                 node.initialized = true;
