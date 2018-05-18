@@ -57,8 +57,6 @@ module.exports = function (RED) {
         });
 
         if (samePath) {
-            //TODO: remove, the error was already logged above
-            // node.error("Path in use. Path: " + config.path);
             return;
         }
         
@@ -120,7 +118,7 @@ module.exports = function (RED) {
 
                 for (let item of list) {
 
-                    if (!node.virtualQueue.has(item)){
+                    if (node.virtualQueue.has(item)){
                         //skip items that are already on the list
                         //they may be currently in process!
                         continue;
@@ -528,11 +526,7 @@ module.exports = function (RED) {
 
         node.setOutFree = function setOutFree() {
             node.outInProcess = false;
-            node.status({
-                fill: "green",
-                shape: "dot",
-                text: RED._("safe-queue.status.done")
-            });
+            node.status({});
         };
 
         node.sendMessage = function sendMessage(message) {
