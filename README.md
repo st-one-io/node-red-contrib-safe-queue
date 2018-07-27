@@ -1,5 +1,17 @@
 node-red-contrib-safe-queue
 =====================
+
+
+[![GitHub](https://img.shields.io/github/license/netsmarttech/node-red-contrib-safe-queue.svg)](license) [![npm](https://img.shields.io/npm/v/node-red-contrib-safe-queue.svg)](https://www.npmjs.com/package/node-red-contrib-safe-queue)
+[![npm](https://img.shields.io/npm/dt/node-red-contrib-safe-queue.svg)](https://www.npmjs.com/package/node-red-contrib-safe-queue)
+
+
+![GitHub forks](https://img.shields.io/github/forks/netsmarttech/node-red-contrib-safe-queue.svg?style=social&label=Fork) ![GitHub stars](https://img.shields.io/github/stars/netsmarttech/node-red-contrib-safe-queue.svg?style=social&label=Stars)
+
+
+
+
+
 This node was designed to control a queue of objects in a secure way.
 
 Install
