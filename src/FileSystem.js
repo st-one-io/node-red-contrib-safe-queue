@@ -23,6 +23,7 @@ const pathLib = require('path');
 const EventEmitter = require('events');
 const mkdirp = require('mkdirp');
 const moment = require('moment');
+const stringify = require('json-stringify-safe');
 
 const queueFolder = "queue";
 const doneFolder = "done";
@@ -380,7 +381,9 @@ class FileSystem extends EventEmitter {
 
         var uriFile = pathLib.join(this.uriQueue, obj.keyMessage + extension);
 
-        fs.writeFile(uriFile, JSON.stringify(obj), {
+        let data = stringify(obj);
+
+        fs.writeFile(uriFile, data, {
             flags: 'rs+'
         }, (err) => {
             if (err) {
@@ -390,7 +393,7 @@ class FileSystem extends EventEmitter {
                         callback(err);
                     }
 
-                    fs.writeFile(uriFile, JSON.stringify(obj), {
+                    fs.writeFile(uriFile, data, {
                         flags: 'rs+'
                     }, (err) => {
                         if (err) {
