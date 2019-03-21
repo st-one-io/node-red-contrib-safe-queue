@@ -159,13 +159,14 @@ module.exports = function (RED) {
 
         node.startProcess = function startProcess() {
             node.log(RED._("safe-queue.message-log.start-process"));
-
+            node.emit('starting');
             node.running = true;
             node.processQueue();
         };
 
         node.stopProcess = function stopProcess() {
             node.log(RED._("safe-queue.message-log.stop-output"));
+            node.emit('stopped');
             node.running = false;
         };
 
@@ -527,8 +528,33 @@ module.exports = function (RED) {
 
         if (!node.config) {
             node.error(RED._("safe-queue.message-errors.error-node-config"));
+
+            node.status({
+                fill: "red",
+                shape: "dot",
+                text: RED._("safe-queue.status.error")
+            });
+
             return;
+        } else {
+            node.status({});
         }
+
+        node.config.on('stopped', function() {
+            node.status({
+                fill: "yellow",
+                shape: "dot",
+                text: RED._("safe-queue.status.stop-outputs")
+            });
+        });
+
+        node.config.on('starting', function() {
+            node.status({
+                fill: "green",
+                shape: "dot",
+                text: RED._("safe-queue.status.done")
+            });
+        });
 
         node.config.registerOut(node);
 
@@ -543,7 +569,11 @@ module.exports = function (RED) {
 
         node.setOutFree = function setOutFree() {
             node.outInProcess = false;
-            node.status({});
+            node.status({
+                fill: "green",	
+                shape: "dot",	
+                text: RED._("safe-queue.status.done")
+            });
         };
 
         node.sendMessage = function sendMessage(message) {
@@ -567,7 +597,17 @@ module.exports = function (RED) {
 
         if (!node.config) {
             node.error(RED._("safe-queue.message-errors.error-node-config"));
+
+            node.status({
+                fill: "red",
+                shape: "dot",
+                text: RED._("safe-queue.status.error")
+            });
+
             return;
+
+        } else {
+            node.status({});
         }
 
         node.on('input', function (msg) {
@@ -698,7 +738,17 @@ module.exports = function (RED) {
 
         if (!node.config) {
             node.error(RED._("safe-queue.message-errors.error-node-config"));
+
+            node.status({
+                fill: "red",
+                shape: "dot",
+                text: RED._("safe-queue.status.error")
+            });
+
             return;
+
+        } else {
+            node.status({});
         }
 
         node.on('input', function (msg) {
