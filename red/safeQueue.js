@@ -140,8 +140,7 @@ module.exports = function (RED) {
 
         node.storage.init((err) => {
             if (err) {
-                node.error(`${RED._("safe-queue.messages.error-init-storage")}: ${err}`);
-                return;
+                throw `${RED._("safe-queue.messages.error-init-storage")}: ${err}`;  
             }
 
             node.updateMessageList(err => {
@@ -457,6 +456,24 @@ module.exports = function (RED) {
         RED.nodes.createNode(this, values);
 
         node.config = RED.nodes.getNode(values.config);
+
+        if (!node.config) {
+            node.error(RED._("safe-queue.message-errors.error-node-config"));
+
+            node.status({
+                fill: "red",
+                shape: "dot",
+                text: RED._("safe-queue.status.error")
+            });
+
+            return;
+        } else {
+            node.status({
+                fill: "green",
+                shape: "dot",
+                text: RED._("safe-queue.status.done")
+            });
+        }
 
         node.on('input', function (msg) {
 
