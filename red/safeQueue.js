@@ -245,6 +245,12 @@ module.exports = function (RED) {
                 node.storage.getMessage(itemQueue.keyMessage, (err, data) => {
                     if (err) {
                         node.error(`${RED._("safe-queue.message-errors.fail-read-message")}: ${itemQueue.keyMessage}`);
+                                                
+                        node.onError({
+                            item: itemQueue.keyMessage,
+                            origin: "get-message-of-file"
+                        });
+                        
                         // let the timeout above handle the issue
                         return;
                     }
@@ -343,6 +349,9 @@ module.exports = function (RED) {
 
                 }
             }
+
+            // origin == get-message-of-file
+            // send to error directory
 
             if (itemQueue.nodeOut) {
                 itemQueue.nodeOut.setOutFree();
