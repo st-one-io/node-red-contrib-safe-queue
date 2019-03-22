@@ -466,7 +466,9 @@ module.exports = function (RED) {
                 text: RED._("safe-queue.status.new-data")
             });
 
-            node.config.receiveMessage(msg, (err) => {
+            let unlinkObject = Object.assign({}, msg);
+
+            node.config.receiveMessage(unlinkObject, (err) => {
                 if (err) {
                     node.error(err);
 
