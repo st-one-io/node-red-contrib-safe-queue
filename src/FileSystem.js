@@ -304,30 +304,76 @@ class FileSystem extends EventEmitter {
 
     init(callback) {
 
-        mkdirp(this.uriQueue, (err, made) => {
+        this.checkPath(this.uriBase, (err) => {
+
             if (err) {
                 callback(err);
                 return;
             }
 
-            mkdirp(this.uriDone, (err, made) => {
+            mkdirp(this.uriQueue, (err, made) => {
                 if (err) {
                     callback(err);
                     return;
                 }
 
-                mkdirp(this.uriError, (err, made) => {
+                mkdirp(this.uriDone, (err, made) => {
                     if (err) {
                         callback(err);
                         return;
                     }
 
-                    this.createWatch();
-                    callback(null);
+                    mkdirp(this.uriError, (err, made) => {
+                        if (err) {
+                            callback(err);
+                            return;
+                        }
 
+                        this.createWatch();
+                        callback(null);
+
+                    });
                 });
             });
-        });
+        });        
+    }
+
+    checkPath(basePath, callback) {
+
+        testDir(basePath);
+
+        function testDir(dirPath) {
+
+            fs.accessSync(dirPath, fs.constants.W_OK, (err) => {
+
+                if (err) {
+
+                    switch (err.code) {
+
+                        case "ENOENT":                            
+                            let newBase = dirPath.substring(0, dirPath.lastIndexOf('/'));                           
+
+                            if (newBase.length === 0) {
+                                newBase = "/";
+                            }
+
+                            testDir(newBase);
+                            break;
+
+                        case "EACCES":
+                            callback(new Error(`Base path is read only. (${basePath})`));
+                            break;
+
+                        default:
+                            callback(err);
+                            break;
+
+                    }
+                } else {
+                    callback(null);
+                }
+            });
+        }
     }
 
     createWatch() {

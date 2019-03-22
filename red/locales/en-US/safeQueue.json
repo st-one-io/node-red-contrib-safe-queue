@@ -90,7 +90,8 @@
       "process": "process",
       "done": "done",
       "error": "error",
-      "new-data": "new data"
+      "new-data": "new data",
+      "stop-outputs": "stop"
     },
     "messages":{
       "path-in-use": "Path in use. Path: ",
