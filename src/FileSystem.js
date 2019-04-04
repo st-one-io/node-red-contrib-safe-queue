@@ -80,9 +80,10 @@ function getFolderSize(path, chkSubdir, callback) {
                             return;
                         }
 
-                        dirsCount--;
-
-                        if (!stat.isDirectory()) return;
+                        if (!stat.isDirectory()) {
+                            dirsCount--;
+                            return;
+                        }
 
                         getFolderSize(newdir, false, (err, cnt) => {
                             if (dirsCount < 0) return;
@@ -94,6 +95,7 @@ function getFolderSize(path, chkSubdir, callback) {
                             }
 
                             count += cnt;
+                            dirsCount--;
 
                             if (dirsCount === 0) {
                                 callback(null, count);
