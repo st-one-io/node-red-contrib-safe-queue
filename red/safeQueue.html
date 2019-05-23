@@ -56,7 +56,7 @@ limitations under the License.
             <span class="property-type">string</span>
         </dt>
         <dd>The
-            <b>SafeQueue In</b> saves the whole message and uniquely identifies it by the _msgid property.</dd>
+            <b>SafeQueue In</b> saves the whole message and uniquely identifies it by the <code>msg.uuid</code> property.</dd>
     </dl>
 
     <h3>Output</h3>
@@ -446,7 +446,7 @@ limitations under the License.
     </p>
     <p>Node responsible for the acknowledement of messages sent by
         <b>SafeQueue Out</b>. All the messages are identified by the
-        <code>msg._msgid</code> property.</p>
+        <code>msg.uuid</code> property.</p>
     <p>This node presents two answers for queue, success or failure. A failure is detected either by a timeout (as configured
         on the queue configuration) or by the presence of a
         <code>msg.error</code> property.</p>
@@ -459,7 +459,7 @@ limitations under the License.
         </dt>
         <dd>The
             <b>SafeQueue ACK</b> processes the information received on
-            <code>msg._msgid</code> and
+            <code>msg.uuid</code> and
             <code>msg.error</code>.</dd>
     </dl>
 
